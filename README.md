@@ -50,8 +50,7 @@ There are some constraints and preferences related to that task.
 <summary>Code example🖥️ </summary>
 
 ---
-In this example, the Student class encapsulates the name and age data members and provides getter 
-and setter methods to access and modify them, respectively. :
+
 
    ```sh
   #include <iostream>
