@@ -99,10 +99,6 @@ public:
 
 		
 	}
-
-
-
-
 	
 	string getID() const override{
 		return "triagle";
@@ -116,6 +112,36 @@ public:
 
 
 
+class Circle : public Figure {
+private:
+	int x_center, y_center;
+	int radius;
+
+public:
+	Circle(int x, int y, int r) : x_center(x), y_center(y), radius(r) {}
+	void draw(std::vector<std::vector<char>>& grid) const override {
+		int r_squared = radius * radius;
+		for (int i = 0; i < BOARD_HEIGHT; ++i) {
+			for (int j = 0; j < BOARD_WIDTH; ++j) {
+				
+				int dx = j - x_center; 
+				int dy = i - y_center; 
+				int dist_squared = dx * dx + dy * dy;
+				if (abs(dist_squared - r_squared) <= 1) {
+					grid[i][j] = '*';
+				}
+			}
+		}
+	}
+
+	string getID() const override {
+		return "circle";
+	}
+
+	string getParameters() const override {
+		return "x: " + to_string(x_center) + ", y: " + to_string(y_center) + ", radius: " + to_string(radius);
+	}
+};
 
 
 
@@ -151,16 +177,18 @@ public:
 };
 
 
+
+
 int main() {
 	Board board;
-	Triangle triangle(7, 24, 9);
-	Rectangle rectangle(6, 6, 3, 3);
+	//Triangle triangle(7, 24, 9);
+	//Rectangle rectangle(6, 6, 3, 3);
 	//Triangle triangle2(5, 0, 5);
-	//Circle circle(40, 12, 5);
-	board.addFigure(triangle);
-	//board.addFigure(circle);
+	Circle circle(40, 12, 5);
+	//board.addFigure(triangle);
+	board.addFigure(circle);
 	//board.addFigure(triangle2);
-	board.addFigure(rectangle);
+	//board.addFigure(rectangle);
 
 	board.print();
 	/*board.clear();
