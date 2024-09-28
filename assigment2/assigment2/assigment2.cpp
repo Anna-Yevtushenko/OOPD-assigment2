@@ -55,11 +55,70 @@ public:
 		return "x: " + to_string(x) + ", y: " + to_string(y) + ", height: " + to_string(height);
 	}
 
+};
+
+
+class Rectangle : public Figure {
+private:
+	int x, y;
+	int width;
+	int height;
+public:
+	Rectangle(int x, int y, int width, int height) : x(x), y(y), width(width), height(height) {
+	}
+
+	void draw(std::vector<std::vector<char>>& grid) const override {
+
+		for (int j = x; j < x + width; ++j) {
+			if (y >= 0 && y < BOARD_HEIGHT && j >= 0 && j < BOARD_WIDTH){
+				grid[y][j] = '*';
+			}
+		}
+
+		for (int j = x; j < x + width; ++j) {
+			if (y + height >= 0 && y + height < BOARD_HEIGHT && j >= 0 && j < BOARD_WIDTH) {
+
+				grid[y + height][j] = '*';
+			}
+		
+		}
+
+		for (int i = y; i <= y + height; ++i) {
+			if (i >= 0 && i < BOARD_HEIGHT && x >= 0 && x < BOARD_WIDTH) {
+				grid[i][x] = '*';
+			}
+		}
+
+		for (int i = y; i <= y + height; ++i) {
+			if (i >= 0 && i < BOARD_HEIGHT && x >= 0 && x < BOARD_WIDTH) {
+				grid[i][x + width] = '*';
+			}
+		}
+
+		
+
+		
+	}
 
 
 
+
+	
+	string getID() const override{
+		return "triagle";
+	}
+
+	string getParameters() const override {
+		return "x: " + to_string(x) + ", y: " + to_string(y) + ", height: " + to_string(height);
+	}
 
 };
+
+
+
+
+
+
 
 
 class Board {
@@ -87,8 +146,6 @@ public:
 			std::fill(row.begin(), row.end(), ' ');
 		}
 	}
-
-
 	
 
 };
@@ -97,10 +154,17 @@ public:
 int main() {
 	Board board;
 	Triangle triangle(7, 24, 9);
-	Triangle triangle2(5, 0, 5);
+	Rectangle rectangle(6, 6, 3, 3);
+	//Triangle triangle2(5, 0, 5);
+	//Circle circle(40, 12, 5);
 	board.addFigure(triangle);
-	board.addFigure(triangle2);
+	//board.addFigure(circle);
+	//board.addFigure(triangle2);
+	board.addFigure(rectangle);
+
 	board.print();
+	/*board.clear();
+	board.print();*/
 
 	return 0;
 }
