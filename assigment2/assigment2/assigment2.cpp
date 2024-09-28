@@ -1,51 +1,106 @@
 #include <iostream>
 #include <vector>
-// Define the size of the board
+#include <string>
+
+
+using namespace std;
 const int BOARD_WIDTH = 80;
 const int BOARD_HEIGHT = 25;
-// Struct to define the board
-struct Board {
+
+
+class Figure {
+public:
+	virtual void draw(std::vector<std::vector<char>>& grid) const = 0;
+	virtual string getID()const = 0;
+	virtual string getParameters() const = 0;
+	virtual ~Figure() = default; 
+};
+
+
+
+class Triangle : public Figure {
+private:
+	int x, y;
+	int height;
+public:
+	Triangle(int x, int y, int height) : x(x), y(y), height(height) {}
+		
+	void draw(std::vector<std::vector<char>>& grid) const override {
+		for (int i = 0; i < height; ++i) {
+			int leftMost = x - i;
+			int rightMost = x + i;
+			int posY = y + i;
+
+			// draw the sides of the triangle
+			if (posY < BOARD_HEIGHT) {
+				if (leftMost >= 0 && leftMost < BOARD_WIDTH)
+					grid[posY][leftMost] = '*';
+				if (rightMost >= 0 && rightMost < BOARD_WIDTH && leftMost != rightMost)
+					grid[posY][rightMost] = '*';
+			}
+		}
+        for (int j = 0; j < 2 * height - 1; ++j) {
+            int baseX = x - height + 1 + j;
+            int baseY = y + height - 1;
+            if (baseX >= 0 && baseX < BOARD_WIDTH && baseY < BOARD_HEIGHT) {
+                grid[baseY][baseX] = '*';
+            }
+        }
+    }
+	string getID() const override{
+		return "triagle";
+	}
+
+	string getParameters() const override {
+		return "x: " + to_string(x) + ", y: " + to_string(y) + ", height: " + to_string(height);
+	}
+
+
+
+
+
+};
+
+
+class Board {
+private:
 	std::vector<std::vector<char>> grid;
+public:
 	Board() : grid(BOARD_HEIGHT, std::vector<char>(BOARD_WIDTH, ' ')) {}
+
 	void print() {
-		for (auto& row : grid) {
-			for (char c : row) {
+		for (auto& row : grid) {//each row of the grid
+			for (char c : row) {//each string character
 				std::cout << c;
 			}
 			std::cout << "\n";
 		}
 	}
-	void drawTriangle(int x, int y, int height) {
-		if (height <= 0) return; // Ensure the triangle height is positive and sensible
-		for (int i = 0; i < height; ++i) {
-			int leftMost = x - i; // Calculate the starting position
-			int rightMost = x + i; // Calculate the ending position
-			int posY = y + i; // Calculate the vertical position
-			// Draw only the edges/border of the triangle
-			if (posY < BOARD_HEIGHT) {
-				if (leftMost >= 0 && leftMost < BOARD_WIDTH) // Check bounds for left
-					//most position;
-				grid[posY][leftMost] = '*';
-				if (rightMost >= 0 && rightMost < BOARD_WIDTH && leftMost != rightMost)
-					// Check bounds for right most position
-					grid[posY][rightMost] = '*';
-			}
-		}
-		// Draw the base of the triangle separately
-		for (int j = 0; j < 2 * height - 1; ++j) {
-			int baseX = x - height + 1 + j;
-			int baseY = y + height - 1;
-			if (baseX >= 0 && baseX < BOARD_WIDTH && baseY < BOARD_HEIGHT) { // Check
-				//bounds for each position on the base
-					grid[baseY][baseX] = '*';
-			}
+
+	void addFigure(const Figure& figure) {
+
+		figure.draw(grid);
+	}
+
+	void clear() {
+		for (auto& row : grid) {
+			std::fill(row.begin(), row.end(), ' ');
 		}
 	}
+
+
+	
+
 };
 
+
 int main() {
-		Board board;
-		board.drawTriangle(10, 1, 5);
-		board.print();
-		return 0;
+	Board board;
+	Triangle triangle(7, 24, 9);
+	Triangle triangle2(5, 0, 5);
+	board.addFigure(triangle);
+	board.addFigure(triangle2);
+	board.print();
+
+	return 0;
 }
