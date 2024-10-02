@@ -15,6 +15,7 @@ public:
     virtual void draw(std::vector<std::vector<char>>& grid) const = 0;
     virtual string getType() const = 0; 
     virtual string getParameters() const = 0;
+    virtual void remove(std::vector<std::vector<char>>& grid) const = 0;
     int getID() const { return id; } 
     virtual ~Figure() = default; 
 };
@@ -46,6 +47,27 @@ public:
             int baseY = y + height - 1;
             if (baseX >= 0 && baseX < BOARD_WIDTH && baseY < BOARD_HEIGHT) {
                 grid[baseY][baseX] = '*';
+            }
+        }
+    }
+    void remove(std::vector<std::vector<char>>& grid) const override {
+        for (int i = 0; i < height; ++i) {
+            int leftMost = x - i;
+            int rightMost = x + i;
+            int posY = y + i;
+
+            if (posY < BOARD_HEIGHT) {
+                if (leftMost >= 0 && leftMost < BOARD_WIDTH)
+                    grid[posY][leftMost] = ' ';  
+                if (rightMost >= 0 && rightMost < BOARD_WIDTH && leftMost != rightMost)
+                    grid[posY][rightMost] = ' ';  
+            }
+        }
+        for (int j = 0; j < 2 * height - 1; ++j) {
+            int baseX = x - height + 1 + j;
+            int baseY = y + height - 1;
+            if (baseX >= 0 && baseX < BOARD_WIDTH && baseY < BOARD_HEIGHT) {
+                grid[baseY][baseX] = ' ';  
             }
         }
     }
@@ -93,6 +115,33 @@ public:
         }
     }
 
+
+    void remove(std::vector<std::vector<char>>& grid) const override {
+        for (int j = x; j < x + width; ++j) {
+            if (y >= 0 && y < BOARD_HEIGHT && j >= 0 && j < BOARD_WIDTH) {
+                grid[y][j] = ' ';  
+            }
+        }
+
+        for (int j = x; j < x + width; ++j) {
+            if (y + height >= 0 && y + height < BOARD_HEIGHT && j >= 0 && j < BOARD_WIDTH) {
+                grid[y + height][j] = ' ';
+            }
+        }
+
+        for (int i = y; i <= y + height; ++i) {
+            if (i >= 0 && i < BOARD_HEIGHT && x >= 0 && x < BOARD_WIDTH) {
+                grid[i][x] = ' ';
+            }
+        }
+
+        for (int i = y; i <= y + height; ++i) {
+            if (i >= 0 && i < BOARD_HEIGHT && x + width >= 0 && x + width < BOARD_WIDTH) {
+                grid[i][x + width] = ' ';
+            }
+        }
+    }
+
     string getType() const override {
         return "rectangle";
     }
@@ -123,6 +172,20 @@ public:
         }
     }
 
+    void remove(std::vector<std::vector<char>>& grid) const override {
+        int r_squared = radius * radius;
+        for (int i = 0; i < BOARD_HEIGHT; ++i) {
+            for (int j = 0; j < BOARD_WIDTH; ++j) {
+                int dx = j - x_center;
+                int dy = i - y_center;
+                int dist_squared = dx * dx + dy * dy;
+                if (abs(dist_squared - r_squared) <= 1) {
+                    grid[i][j] = ' '; 
+                }
+            }
+        }
+    }
+
     string getType() const override {
         return "circle";
     }
@@ -137,22 +200,23 @@ private:
     vector<std::vector<char>> grid;
     vector<Figure*> figures;
 public:
-    Board() : grid(BOARD_HEIGHT, vector<char>(BOARD_WIDTH, ' ')) {}
+    Board() : grid(BOARD_HEIGHT, vector<char>(BOARD_WIDTH, ' ')) {
+    }
 
     void print() {
 
         cout << '-' << string(BOARD_WIDTH, '-') << '-' << "\n";
 
-        
+
         for (auto& row : grid) {
-            cout << '|';  
+            cout << '|';
             for (char c : row) {
                 cout << c;
             }
-            cout << '|' << "\n"; 
+            cout << '|' << "\n";
         }
 
- 
+
         cout << '-' << string(BOARD_WIDTH, '-') << '-' << "\n";
     }
 
@@ -175,27 +239,60 @@ public:
         }
 
         for (const auto& figure : figures) {
-            cout  << figure->getID() << "  " << figure->getType()
+            cout << figure->getID() << "  " << figure->getType()
                 << ", " << figure->getParameters() << '\n';
         }
     }
+
+    void shapes() const {
+        cout << "All available shapes and their parameters: \n";
+        cout << "Example for triangle, x: 10, y: 12, height: 5\n";
+        cout << "Example for circle, x_center: 40, y_center: 12, radius: 5\n";
+        cout << "Example for rectangle, x: 15, y: 5, width: 10, height: 5\n";
+    }
+
+
+    void undo() {
+        if (!figures.empty()) {
+            figures.back()->remove(grid);
+
+            delete figures.back();
+            figures.pop_back();
+
+            cout << "Undo: Last shape removed from the board.\n";
+        } else {
+            cout << "No figures to undo.\n";
+        }
+    }
 };
+
+    
+
+
+
 
 int main() {
     vector<Figure*> figures;
     Board board;
 
     Circle* circle = new Circle(40, 12, 5);
-    Circle* circle1 = new Circle(10, 8, 5);
+    Rectangle* rect = new Rectangle(15, 5, 10, 6);
 
     figures.push_back(circle);
-    figures.push_back(circle1);
+    figures.push_back(rect);
+
 
     for (const auto& figure : figures) {
         board.addFigure(figure);
     }
     board.print();
     board.list();
+ //   board.shapes();
+//    board.clear();
+    board.undo();
+    board.print();
+    board.undo();
+    board.print();
 
     for (Figure* figure : figures) {
         delete figure;
