@@ -140,13 +140,22 @@ public:
     Board() : grid(BOARD_HEIGHT, vector<char>(BOARD_WIDTH, ' ')) {}
 
     void print() {
+
+        cout << '-' << string(BOARD_WIDTH, '-') << '-' << "\n";
+
+        
         for (auto& row : grid) {
+            cout << '|';  
             for (char c : row) {
                 cout << c;
             }
-            cout << "\n";
+            cout << '|' << "\n"; 
         }
+
+ 
+        cout << '-' << string(BOARD_WIDTH, '-') << '-' << "\n";
     }
+
 
     void addFigure(Figure* figure) {
         figures.push_back(figure);
