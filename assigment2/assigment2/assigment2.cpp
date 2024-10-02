@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <fstream> 
 
 using namespace std;
 const int BOARD_WIDTH = 80;
@@ -264,6 +265,51 @@ public:
             cout << "No figures to undo.\n";
         }
     }
+
+
+    void save(const string& filepath)const {
+        ofstream file(filepath);
+
+        if (!file.is_open()) {
+            cout << "Error opening";
+            return;
+        }
+
+        file << figures.size() << '\n';
+
+        for (auto& figure : figures) {
+            file << figure->getType() << " " << figure->getParameters() << '\n';
+
+
+        }
+        
+        file.close();
+        cout << "Board saved to " << filepath << "\n";
+
+    }
+
+    void load(const string& filepath)const {
+        ifstream file(filepath);
+        if (!file.is_open()) {
+            cout << "Error opening";
+            return;
+        }
+
+        clear();
+        for (auto& figure : figures) {
+            delete figure;
+        }
+        figures.clear();
+
+
+
+
+        file.close();
+    }
+   
+
+
+
 };
 
     
@@ -289,9 +335,14 @@ int main() {
     board.list();
  //   board.shapes();
 //    board.clear();
-    board.undo();
+    //board.undo();
+    //board.print();
+    //board.undo();
+    //board.print();
+    board.save("board.txt");
     board.print();
-    board.undo();
+
+    board.load("board.txt");
     board.print();
 
     for (Figure* figure : figures) {
