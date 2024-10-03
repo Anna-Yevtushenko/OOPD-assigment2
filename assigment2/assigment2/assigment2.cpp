@@ -3,9 +3,11 @@
 #include <string>
 #include <fstream> 
 
+
 using namespace std;
 const int BOARD_WIDTH = 80;
 const int BOARD_HEIGHT = 25;
+
 
 class Figure {
 protected:
@@ -20,6 +22,7 @@ public:
     int getID() const { return id; } 
     virtual ~Figure() = default; 
 };
+
 
 int Figure::nextID = 1; 
 
@@ -71,6 +74,18 @@ public:
                 grid[baseY][baseX] = ' ';  
             }
         }
+    }
+
+    int getX() {
+        return x;
+    }
+
+    int getY() {
+        return y;
+    }
+
+    int getHeight() {
+        return height;
     }
 
     string getType() const override {
@@ -143,6 +158,25 @@ public:
         }
     }
 
+    int getX() {
+        return x;
+    }
+
+    int getY() {
+        return y;
+    }
+
+    int getWidth() {
+        return height;
+    }
+
+    int getHeight() {
+        return height;
+    }
+
+
+
+
     string getType() const override {
         return "rectangle";
     }
@@ -185,6 +219,17 @@ public:
                 }
             }
         }
+    }
+    int getX() {
+        return x_center;
+    }
+
+    int getY() {
+        return y_center;
+    }
+
+    int getRadius(){
+        return radius;
     }
 
     string getType() const override {
@@ -278,7 +323,18 @@ public:
         file << figures.size() << '\n';
 
         for (auto& figure : figures) {
-            file << figure->getType() << " " << figure->getParameters() << '\n';
+            if (figure->getType() == "circle") {
+                Circle* circle = dynamic_cast<Circle*>(figure);  
+                file << "circle " << circle->getX() << " " << circle->getY() << " " << circle->getRadius() << '\n';
+            }
+            else if (figure->getType() == "rectangle") {
+                Rectangle* rect = dynamic_cast<Rectangle*>(figure);
+                file << "rectangle " << rect->getX() << " " << rect->getY() << " " << rect->getWidth() << " " << rect->getHeight() << '\n';
+            }
+            else if (figure->getType() == "triangle") {
+                Triangle* triangle = dynamic_cast<Triangle*>(figure);
+                file << "triangle " << triangle->getX() << " " << triangle->getY() << " " << triangle->getHeight() << '\n';
+            }
 
 
         }
@@ -288,10 +344,11 @@ public:
 
     }
 
-    void load(const string& filepath)const {
+
+    void load(const string& filepath) {
         ifstream file(filepath);
         if (!file.is_open()) {
-            cout << "Error opening";
+            cout << "Error opening file.\n";
             return;
         }
 
@@ -301,14 +358,69 @@ public:
         }
         figures.clear();
 
+        size_t figureCount;
+        file >> figureCount; 
+        file.ignore();  
 
+        for (size_t i = 0; i < figureCount; ++i) {
+            string type;
+            file >> type;
 
+            
+            cout << "Reading shape type: " << type << "\n";
+
+            if (type == "circle") {
+                int x, y, r;
+                string ignore;
+
+               
+                getline(file, ignore, ':'); 
+                file >> x;
+                getline(file, ignore, ':'); 
+                file >> y;
+                getline(file, ignore, ':');  
+                file >> r;
+
+                Circle* circle = new Circle(x, y, r);
+                addFigure(circle);
+            }
+            else if (type == "rectangle") {
+                int x, y, width, height;
+                string ignore;
+
+                getline(file, ignore, ':');  
+                file >> x;
+                getline(file, ignore, ':');  
+                file >> y;
+                getline(file, ignore, ':');  
+                file >> width;
+                getline(file, ignore, ':');  
+                file >> height;
+
+                Rectangle* rect = new Rectangle(x, y, width, height);
+                addFigure(rect);
+            }
+            else {
+                cout << "Unknown shape type: " << type << "\n";
+                return;
+            }
+
+            file.ignore();  
+        }
 
         file.close();
+        cout << "Board loaded from " << filepath << "\n";
     }
-   
+
+};
 
 
+class Line : public Figure {
+
+    int x_f, x_s, y_f, y_s;
+
+    Line(int x_f, int x_s, int y_f, int y_s) : x_f(x_f), x_s(x_s), y_f(y_f), y_s(y_s) {
+    }
 
 };
 
@@ -332,15 +444,15 @@ int main() {
         board.addFigure(figure);
     }
     board.print();
-    board.list();
+    //board.list();
  //   board.shapes();
 //    board.clear();
     //board.undo();
     //board.print();
     //board.undo();
     //board.print();
-    board.save("board.txt");
-    board.print();
+    //board.save("board.txt");
+    //board.print();
 
     board.load("board.txt");
     board.print();
