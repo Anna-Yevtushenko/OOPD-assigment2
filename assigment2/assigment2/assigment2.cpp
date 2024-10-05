@@ -47,9 +47,15 @@ private:
 public:
     Triangle(int x, int y, int height) : x(x), y(y), height(height) {}
     bool isWithinBoard() const override {
-        return (x - height >= 0 && x + height < BOARD_WIDTH &&
-            y >= 0 && y + height < BOARD_HEIGHT);
+        
+        if ( height < BOARD_HEIGHT) {
+            return true; 
+        } else {
+            cout << "The triangle's height exceeds the board's height.\n";
+            return false; 
+        }
     }
+
 
     void draw(std::vector<std::vector<char>>& grid) const override {
         for (int i = 0; i < height; ++i) {
@@ -124,9 +130,16 @@ public:
     Rectangle(int x, int y, int width, int height) : x(x), y(y), width(width), height(height) {}
 
     bool isWithinBoard() const override {
-        return (x - height >= 0 && x + height < BOARD_WIDTH &&
-            y >= 0 && y + height < BOARD_HEIGHT);
+        
+        if (width > BOARD_WIDTH || height > BOARD_HEIGHT) {
+            cout << "The rectangle exceeds the board's dimensions (width or height).\n";
+            return false;
+        }
+
+        return true;
     }
+
+
 
     void draw(std::vector<std::vector<char>>& grid) const override {
         for (int j = x; j < x + width; ++j) {
@@ -217,9 +230,15 @@ public:
     Square(int x, int y, int size) : x(x), y(y), size(size) {}
 
     bool isWithinBoard() const override {
-        return (x >= 0 && x + size < BOARD_WIDTH &&
-            y >= 0 && y + size < BOARD_HEIGHT);
+        
+        if (size > BOARD_HEIGHT) {
+            cout << "The side of the square exceeds the board's height.\n";
+            return false;
+        }
+
+        return true;
     }
+
 
     void draw(std::vector<std::vector<char>>& grid) const override {
         for (int j = x; j < x + size; ++j) {
@@ -293,9 +312,14 @@ public:
     Circle(int x, int y, int r) : x_center(x), y_center(y), radius(r) {}
 
     bool isWithinBoard() const override {
-        return (x_center - radius >= 0 && x_center + radius < BOARD_WIDTH &&
-            y_center - radius >= 0 && y_center + radius < BOARD_HEIGHT);
+
+        if (radius > BOARD_HEIGHT) {
+            cout << "The radius of the circle exceeds the board's height.\n";
+            return false;
+        }
+        return true;
     }
+
     void draw(std::vector<std::vector<char>>& grid) const override {
         int r_squared = radius * radius;
         for (int i = 0; i < BOARD_HEIGHT; ++i) {
@@ -373,7 +397,7 @@ public:
     void addFigure(Figure* figure) {
         
         if (!figure->isWithinBoard()) {
-            cout << figure->getType() << " is too big for the board! It will not be added.\n";
+            cout << figure->getType() << " is too big for the board\n";
             return;
         }
 
@@ -476,8 +500,10 @@ public:
             string type;
             file >> type;
 
-            
-            cout << "Reading shape type: " << type << "\n";
+            if (type.empty()) {
+                continue;  
+            }
+            //cout << "Reading shape type: " << type << "\n";
 
             if (type == "circle") {
                 int x, y, r;
@@ -510,6 +536,18 @@ public:
                 Rectangle* rect = new Rectangle(x, y, width, height);
                 addFigure(rect);
             }
+            else if (type == "square") {
+                int x, y, size;
+                file >> x >> y >> size;
+                Square* square = new Square(x, y, size);
+                addFigure(square);  
+            }
+            else if (type == "triangle") {
+                int x, y, height;
+                file >> x >> y >> height;
+                Triangle* triangle = new Triangle(x, y, height);
+                addFigure(triangle);  
+            } 
             else {
                 cout << "Unknown shape type: " << type << "\n";
                 return;
@@ -525,14 +563,7 @@ public:
 };
 
 
-class Line : public Figure {
 
-    int x_f, x_s, y_f, y_s;
-
-    Line(int x_f, int x_s, int y_f, int y_s) : x_f(x_f), x_s(x_s), y_f(y_f), y_s(y_s) {
-    }
-
-};
 
    
 void addShape(Board& board) {
@@ -571,7 +602,7 @@ void addShape(Board& board) {
 
 
 void showCommand() {
-    cout << "Available commands:\n";
+    cout << "Enter the command:\n";
     cout << "1. draw\n";
     cout << "2. list\n";
     cout << "3. shapes\n";
