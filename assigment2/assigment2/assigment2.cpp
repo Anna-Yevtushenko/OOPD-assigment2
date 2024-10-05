@@ -19,6 +19,7 @@ public:
     virtual string getType() const = 0; 
     virtual string getParameters() const = 0;
     virtual void remove(std::vector<std::vector<char>>& grid) const = 0;
+    virtual bool isWithinBoard() const = 0;
     int getID() const { return id; } 
     virtual ~Figure() = default; 
 };
@@ -32,6 +33,10 @@ private:
     int height;
 public:
     Triangle(int x, int y, int height) : x(x), y(y), height(height) {}
+    bool isWithinBoard() const override {
+        return (x - height >= 0 && x + height < BOARD_WIDTH &&
+            y >= 0 && y + height < BOARD_HEIGHT);
+    }
 
     void draw(std::vector<std::vector<char>>& grid) const override {
         for (int i = 0; i < height; ++i) {
@@ -104,6 +109,11 @@ private:
     int height;
 public:
     Rectangle(int x, int y, int width, int height) : x(x), y(y), width(width), height(height) {}
+
+    bool isWithinBoard() const override {
+        return (x - height >= 0 && x + height < BOARD_WIDTH &&
+            y >= 0 && y + height < BOARD_HEIGHT);
+    }
 
     void draw(std::vector<std::vector<char>>& grid) const override {
         for (int j = x; j < x + width; ++j) {
@@ -186,6 +196,81 @@ public:
     }
 };
 
+class Square : public Figure {
+private:
+    int x, y;
+    int size;
+public:
+    Square(int x, int y, int size) : x(x), y(y), size(size) {}
+
+    bool isWithinBoard() const override {
+        return (x >= 0 && x + size < BOARD_WIDTH &&
+            y >= 0 && y + size < BOARD_HEIGHT);
+    }
+
+    void draw(std::vector<std::vector<char>>& grid) const override {
+        for (int j = x; j < x + size; ++j) {
+            if (y >= 0 && y < BOARD_HEIGHT && j >= 0 && j < BOARD_WIDTH) {
+                grid[y][j] = '*';
+            }
+        }
+        for (int i = y; i <= y + size; ++i) {
+            if (i >= 0 && i < BOARD_HEIGHT && x >= 0 && x < BOARD_WIDTH) {
+                grid[i][x] = '*';
+            }
+        }
+
+        for (int j = x; j < x + size; ++j) {
+            if (y + size >= 0 && y + size < BOARD_HEIGHT && j >= 0 && j < BOARD_WIDTH) {
+                grid[y + size][j] = '*';
+            }
+        }
+        
+        for (int i = y; i <= y + size; ++i) {
+            if (i >= 0 && i < BOARD_HEIGHT && x + size >= 0 && x + size < BOARD_WIDTH) {
+                grid[i][x + size] = '*';
+            }
+        }
+    }
+
+    void remove(std::vector<std::vector<char>>& grid) const override {
+        for (int j = x; j < x + size; ++j) {
+            if (y >= 0 && y < BOARD_HEIGHT && j >= 0 && j < BOARD_WIDTH) {
+                grid[y][j] = ' ';
+            }
+        }
+        for (int j = x; j < x + size; ++j) {
+            if (y + size >= 0 && y + size < BOARD_HEIGHT && j >= 0 && j < BOARD_WIDTH) {
+                grid[y + size][j] = ' ';
+            }
+        }
+        for (int i = y; i <= y + size; ++i) {
+            if (i >= 0 && i < BOARD_HEIGHT && x >= 0 && x < BOARD_WIDTH) {
+                grid[i][x] = ' ';
+            }
+        }
+        for (int i = y; i <= y + size; ++i) {
+            if (i >= 0 && i < BOARD_HEIGHT && x + size >= 0 && x + size < BOARD_WIDTH) {
+                grid[i][x + size] = ' ';
+            }
+        }
+    }
+
+    string getType() const override {
+        return "square";
+    }
+
+    string getParameters() const override {
+        return "x: " + to_string(x) + ", y: " + to_string(y) + ", size: " + to_string(size);
+    }
+};
+
+
+
+
+
+
+
 class Circle : public Figure {
 private:
     int x_center, y_center;
@@ -193,6 +278,11 @@ private:
 
 public:
     Circle(int x, int y, int r) : x_center(x), y_center(y), radius(r) {}
+
+    bool isWithinBoard() const override {
+        return (x_center - radius >= 0 && x_center + radius < BOARD_WIDTH &&
+            y_center - radius >= 0 && y_center + radius < BOARD_HEIGHT);
+    }
     void draw(std::vector<std::vector<char>>& grid) const override {
         int r_squared = radius * radius;
         for (int i = 0; i < BOARD_HEIGHT; ++i) {
@@ -268,8 +358,15 @@ public:
 
 
     void addFigure(Figure* figure) {
+        
+        if (!figure->isWithinBoard()) {
+            cout << figure->getType() << " is too big for the board! It will not be added.\n";
+            return;
+        }
+
         figures.push_back(figure);
         figure->draw(grid);
+        cout << figure->getType() << " added successfully.\n";
     }
 
     void clear() {
@@ -428,37 +525,54 @@ class Line : public Figure {
 
 
 
-
 int main() {
     vector<Figure*> figures;
     Board board;
 
     Circle* circle = new Circle(40, 12, 5);
     Rectangle* rect = new Rectangle(15, 5, 10, 6);
+    Square* square = new Square(5, 5, 14);
+    Circle* largeCircle = new Circle(40, 12, 50);  
 
-    figures.push_back(circle);
-    figures.push_back(rect);
+    
+    if (circle->isWithinBoard()) {
+        figures.push_back(circle);  
+    } else {
+        cout << "Circle is too big for the board! It will not be added.\n";
+    }
 
+    if (rect->isWithinBoard()) {
+        figures.push_back(rect); 
+    } else {
+        cout << "Rectangle is too big for the board! It will not be added.\n";
+    }
 
+    if (square->isWithinBoard()) {
+        figures.push_back(square); 
+    } else {
+        cout << "Square is too big for the board! It will not be added.\n";
+    }
+
+    if (largeCircle->isWithinBoard()) {
+        figures.push_back(square); 
+    } else {
+        cout << "Square is too big for the board! It will not be added.\n";
+    }
+
+  
     for (const auto& figure : figures) {
         board.addFigure(figure);
     }
+
     board.print();
-    //board.list();
- //   board.shapes();
-//    board.clear();
-    //board.undo();
-    //board.print();
-    //board.undo();
-    //board.print();
-    //board.save("board.txt");
-    //board.print();
 
     board.load("board.txt");
     board.print();
 
+
     for (Figure* figure : figures) {
         delete figure;
     }
+
     return 0;
 }
