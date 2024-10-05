@@ -8,6 +8,19 @@ using namespace std;
 const int BOARD_WIDTH = 80;
 const int BOARD_HEIGHT = 25;
 
+enum Command {
+    DRAW,
+    LIST,
+    SHAPES,
+    ADD,
+    UNDO,
+    CLEAR,
+    SAVE,
+    LOAD,
+    EXIT,
+    INVALID
+};
+
 
 class Figure {
 protected:
@@ -521,57 +534,120 @@ class Line : public Figure {
 
 };
 
-    
+   
+void addShape(Board& board) {
+    string shapeType;
+    cout << "Enter shape type (circle, rectangle, square, triangle): ";
+    cin >> shapeType;
+
+    if (shapeType == "circle") {  
+        int x, y, r;
+        cout << "Enter x_center, y_center, and radius: ";
+        cin >> x >> y >> r;
+        Circle* circle = new Circle(x, y, r);
+        board.addFigure(circle);
+    } else if (shapeType == "rectangle") { 
+        int x, y, width, height;
+        cout << "Enter top-left x, y, width, and height for the rectangle: ";
+        cin >> x >> y >> width >> height;
+        Rectangle* rect = new Rectangle(x, y, width, height);
+        board.addFigure(rect);
+    } else if (shapeType == "square") {  
+        int x, y, size;
+        cout << "Enter top-left x, y, and size for the square: ";
+        cin >> x >> y >> size;
+        Square* square = new Square(x, y, size);
+        board.addFigure(square);
+    } else if (shapeType == "triangle") {  
+        int x, y, height;
+        cout << "Enter base x, y, and height for the triangle: ";
+        cin >> x >> y >> height;
+        Triangle* triangle = new Triangle(x, y, height);
+        board.addFigure(triangle);
+    } else {
+        cout << "Invalid shape type. Please enter circle, rectangle, square, or triangle.\n";
+    }
+}
+
+
+void showCommand() {
+    cout << "Available commands:\n";
+    cout << "1. draw\n";
+    cout << "2. list\n";
+    cout << "3. shapes\n";
+    cout << "4. add\n";
+    cout << "5. undo\n";
+    cout << "6. clear\n";
+    cout << "7. save <file>\n";
+    cout << "8. load <file>\n";
+    cout << "9. exit\n";
+}
+
+
+Command getCommandFromInput(const string& input) {
+    if (input == "draw") return DRAW;
+    if (input == "list") return LIST;
+    if (input == "shapes") return SHAPES;
+    if (input == "add") return ADD;
+    if (input == "undo") return UNDO;
+    if (input == "clear") return CLEAR;
+    if (input == "save") return SAVE;
+    if (input == "load") return LOAD;
+    if (input == "exit") return EXIT;
+    return INVALID;
+}
 
 
 
 int main() {
-    vector<Figure*> figures;
     Board board;
+    string input;
+    showCommand();
 
-    Circle* circle = new Circle(40, 12, 5);
-    Rectangle* rect = new Rectangle(15, 5, 10, 6);
-    Square* square = new Square(5, 5, 14);
-    Circle* largeCircle = new Circle(40, 12, 50);  
+    while (true) {
+        cout << "> ";
+        cin >> input;
+        Command cmd = getCommandFromInput(input);
 
-    
-    if (circle->isWithinBoard()) {
-        figures.push_back(circle);  
-    } else {
-        cout << "Circle is too big for the board! It will not be added.\n";
-    }
-
-    if (rect->isWithinBoard()) {
-        figures.push_back(rect); 
-    } else {
-        cout << "Rectangle is too big for the board! It will not be added.\n";
-    }
-
-    if (square->isWithinBoard()) {
-        figures.push_back(square); 
-    } else {
-        cout << "Square is too big for the board! It will not be added.\n";
-    }
-
-    if (largeCircle->isWithinBoard()) {
-        figures.push_back(square); 
-    } else {
-        cout << "Square is too big for the board! It will not be added.\n";
-    }
-
-  
-    for (const auto& figure : figures) {
-        board.addFigure(figure);
-    }
-
-    board.print();
-
-    board.load("board.txt");
-    board.print();
-
-
-    for (Figure* figure : figures) {
-        delete figure;
+        switch (cmd) {
+        case DRAW:
+            board.print();
+            break;
+        case LIST:
+            board.list();
+            break;
+        case SHAPES:
+            board.shapes();
+            break;
+        case ADD:
+            addShape(board);  
+            break;
+        case UNDO:
+            board.undo();
+            break;
+        case CLEAR:
+            board.clear();
+            break;
+        case SAVE: {
+                string filepath;
+                cin >> filepath;
+                board.save(filepath);
+                break;
+        }
+        case LOAD: {
+            string filepath;
+            cin >> filepath;
+            board.load(filepath);
+            break;
+        }
+        case EXIT:
+            return 0;  
+        case INVALID:
+        default:
+            cout << "Invalid command. Please try again.\n";
+            showCommand();
+            break;
+        }
     }
 
     return 0;
