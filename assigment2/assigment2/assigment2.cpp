@@ -295,9 +295,19 @@ public:
     string getParameters() const override {
         return "x: " + to_string(x) + ", y: " + to_string(y) + ", size: " + to_string(size);
     }
+
+    int getX() {
+        return x;
+    }
+
+    int getY() {
+        return y;
+    }
+
+    int getSize() {
+        return size;
+    }
 };
-
-
 
 
 
@@ -454,7 +464,7 @@ public:
             return;
         }
 
-        file << figures.size() << '\n';
+        file << figures.size() << '\n';//number of figures on the board
 
         for (auto& figure : figures) {
             if (figure->getType() == "circle") {
@@ -468,6 +478,10 @@ public:
             else if (figure->getType() == "triangle") {
                 Triangle* triangle = dynamic_cast<Triangle*>(figure);
                 file << "triangle " << triangle->getX() << " " << triangle->getY() << " " << triangle->getHeight() << '\n';
+            }
+            else if (figure->getType() == "square") {
+                Square* square = dynamic_cast<Square*>(figure);
+                file << "square " << square->getX() << " " << square->getY() << " " << square->getSize() << '\n';
             }
 
 
@@ -560,45 +574,42 @@ public:
         cout << "Board loaded from " << filepath << "\n";
     }
 
+    void addShape() {
+        string shapeType;
+        cout << "Enter shape type (circle, rectangle, square, triangle): ";
+        cin >> shapeType;
+
+        if (shapeType == "circle") {  
+            int x, y, r;
+            cout << "Enter x_center, y_center, and radius: ";
+            cin >> x >> y >> r;
+            Circle* circle = new Circle(x, y, r);
+            addFigure(circle);  
+        } else if (shapeType == "rectangle") { 
+            int x, y, width, height;
+            cout << "Enter top-left x, y, width, and height for the rectangle: ";
+            cin >> x >> y >> width >> height;
+            Rectangle* rect = new Rectangle(x, y, width, height);
+            addFigure(rect); 
+        } else if (shapeType == "square") {  
+            int x, y, size;
+            cout << "Enter top-left x, y, and size for the square: ";
+            cin >> x >> y >> size;
+            Square* square = new Square(x, y, size);
+            addFigure(square);  
+        } else if (shapeType == "triangle") {  
+            int x, y, height;
+            cout << "Enter base x, y, and height for the triangle: ";
+            cin >> x >> y >> height;
+            Triangle* triangle = new Triangle(x, y, height);
+            addFigure(triangle);  
+        } else {
+            cout << "Invalid shape type. Please enter circle, rectangle, square, or triangle.\n";
+        }
+    }
 };
 
 
-
-
-   
-void addShape(Board& board) {
-    string shapeType;
-    cout << "Enter shape type (circle, rectangle, square, triangle): ";
-    cin >> shapeType;
-
-    if (shapeType == "circle") {  
-        int x, y, r;
-        cout << "Enter x_center, y_center, and radius: ";
-        cin >> x >> y >> r;
-        Circle* circle = new Circle(x, y, r);
-        board.addFigure(circle);
-    } else if (shapeType == "rectangle") { 
-        int x, y, width, height;
-        cout << "Enter top-left x, y, width, and height for the rectangle: ";
-        cin >> x >> y >> width >> height;
-        Rectangle* rect = new Rectangle(x, y, width, height);
-        board.addFigure(rect);
-    } else if (shapeType == "square") {  
-        int x, y, size;
-        cout << "Enter top-left x, y, and size for the square: ";
-        cin >> x >> y >> size;
-        Square* square = new Square(x, y, size);
-        board.addFigure(square);
-    } else if (shapeType == "triangle") {  
-        int x, y, height;
-        cout << "Enter base x, y, and height for the triangle: ";
-        cin >> x >> y >> height;
-        Triangle* triangle = new Triangle(x, y, height);
-        board.addFigure(triangle);
-    } else {
-        cout << "Invalid shape type. Please enter circle, rectangle, square, or triangle.\n";
-    }
-}
 
 
 void showCommand() {
@@ -630,11 +641,8 @@ Command getCommandFromInput(const string& input) {
 
 
 
-int main() {
-    Board board;
+void run(Board& board) {
     string input;
-    showCommand();
-
     while (true) {
         cout << "> ";
         cin >> input;
@@ -651,7 +659,7 @@ int main() {
             board.shapes();
             break;
         case ADD:
-            addShape(board);  
+            board.addShape();
             break;
         case UNDO:
             board.undo();
@@ -672,7 +680,7 @@ int main() {
             break;
         }
         case EXIT:
-            return 0;  
+            return; 
         case INVALID:
         default:
             cout << "Invalid command. Please try again.\n";
@@ -680,6 +688,16 @@ int main() {
             break;
         }
     }
+}
+
+
+
+int main() {
+    Board board;
+    string input;
+    showCommand();
+    run(board);
+   
 
     return 0;
 }
