@@ -182,6 +182,48 @@ of new stricter requirements to the already developed parts.
 
 
 
+
+
+
+## Constraints
+In addition to previous constraints there are a new one:
+1. Command must be read from the console as a whole. In other words, you should input the
+command with all its arguments as a single string.
+2. Now shapes can be drawn not only as a frame but also as a whole-filled figure.
+3. Shapes on the board have an associated colour with them, which should be respected.
+Shapes must be “drawn” with the first letter of their colour as a symbol.
+4. A file with an invalid board should not be loadable.
+5. All objects must be stored in a single array. This was not an explicit, but an implicit
+requirement from the previous work. Here we just want to state it explicitly.
+6. You can draw figures using real colours. In that case, there will be extra points for you.
+You can use external libraries or your platform API for that one.
+
+
+## Task milestones 
+
+1. Carefully read the table and think about the corner case of the designed system.
+2. Update the system design if needed.
+3. Implement figures selecting logic, consider figure level (background, foreground,
+middle).
+4. Add figure removing functionality.
+5. Implement figures filling with a colour (painting).
+6. Add ability to edit figures parameters.
+7. Implement moving logic of the figure.
+8. Test your solution and prepare a report document.
+
+
+
+## Assessment 🌟 
+  - Usage of inheritance and polymorphism principles including dynamic_cast
+usage  - 4
+  - Extended functionality is fully implemented  - 5
+  - All constraints are satisfied  - 1
+  - Extra points:real colours in the terminal -1
+
+
+**Total 10 + 1**
+
+
 <details>
 <summary>Code example🖥️ </summary>
 
@@ -222,49 +264,4 @@ return 0;
 ```
 
 ---
-
 </details>
-
-
-
-## Constraints
-In addition to previous constraints there are a new one:
-1. Command must be read from the console as a whole. In other words, you should input the
-command with all its arguments as a single string.
-2. Now shapes can be drawn not only as a frame but also as a whole-filled figure.
-3. Shapes on the board have an associated colour with them, which should be respected.
-Shapes must be “drawn” with the first letter of their colour as a symbol.
-4. A file with an invalid board should not be loadable.
-5. All objects must be stored in a single array. This was not an explicit, but an implicit
-requirement from the previous work. Here we just want to state it explicitly.
-6. You can draw figures using real colours. In that case, there will be extra points for you.
-You can use external libraries or your platform API for that one.
-
-
-
-
-## Task milestones 
-
-1. Carefully read the table and think about the corner case of the designed system.
-2. Update the system design if needed.
-3. Implement figures selecting logic, consider figure level (background, foreground,
-middle).
-4. Add figure removing functionality.
-5. Implement figures filling with a colour (painting).
-6. Add ability to edit figures parameters.
-7. Implement moving logic of the figure.
-8. Test your solution and prepare a report document.
-
-
-
-## Assessment 🌟 
-  - Usage of inheritance and polymorphism principles including dynamic_cast
-usage  - 4
-  - Extended functionality is fully implemented  - 5
-  - All constraints are satisfied  - 1
-  - Extra points:real colours in the terminal -1
-
-
-**Total 10 + 1**
-
-
