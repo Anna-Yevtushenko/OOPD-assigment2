@@ -259,7 +259,7 @@ public:
     }
 
     string getParameters() const override {
-        return "x: " + to_string(x) + ", y: " + to_string(y) + ", height: " + to_string(height);
+        return "x: " + to_string(x) + ", y: " + to_string(y) + ", height: " + to_string(height) +  ", color: " + color + ", type: " + (isFilled ? "fill" : "frame");
     }
 };
 
@@ -398,10 +398,10 @@ public:
     string getType() const override {
         return "rectangle";
     }
-
     string getParameters() const override {
-        return "x: " + to_string(x) + ", y: " + to_string(y) + ", width: " + to_string(width) + ", height: " + to_string(height);
+        return "x: " + to_string(x) + ", y: " + to_string(y) + ", width: " + to_string(width) + ", height: " + to_string(height) +  ", color: " + color + ", type: " + (isFilled ? "fill" : "frame");
     }
+
 };
 
 
@@ -518,7 +518,7 @@ public:
     }
 
     string getParameters() const override {
-        return "x: " + to_string(x) + ", y: " + to_string(y) + ", size: " + to_string(size);
+        return "x: " + to_string(x) + ", y: " + to_string(y) + ", size: " + to_string(size) + ", color: " + color + ", type: " + (isFilled ? "fill" : "frame");
     }
 
     int getX() {
@@ -646,7 +646,7 @@ public:
     }
 
     string getParameters() const override {
-        return "x_center: " + to_string(x_center) + ", y_center: " + to_string(y_center) + ", radius: " + to_string(radius);
+        return "x_center: " + to_string(x_center) + ", y_center: " + to_string(y_center) + ", radius: " + to_string(radius) + ", color: " + color + ", type: " + (isFilled ? "fill" : "frame");
     }
 };
 
