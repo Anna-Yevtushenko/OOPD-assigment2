@@ -725,10 +725,10 @@ public:
 
     void shapes() const {
         cout << "All available shapes and their parameters: \n";
-        cout << "Example for triangle, x: 10, y: 12, height: 5\n";
-        cout << "Example for circle, x_center: 40, y_center: 12, radius: 5\n";
-        cout << "Example for rectangle, x: 15, y: 5, width: 10, height: 5\n";
-        cout << "Example for square, x: 20, y: 10, size: 5\n";
+        cout << "Example for triangle, type: fill, color: red, x: 10, y: 12, height: 5\n";
+        cout << "Example for circle, type: frame, color: blue, x_center: 40, y_center: 12, radius: 5\n";
+        cout << "Example for rectangle, type: fill, color: green, x: 15, y: 5, width: 10, height: 5\n";
+        cout << "Example for square, type: frame, color: yellow, x: 20, y: 10, size: 5\n";
     }
 
 
