@@ -3,11 +3,39 @@
 #include <string>
 #include <fstream>
 
-#include <SFML/Graphics.hpp>
+//#include <SFML/Graphics.hpp>
 
 using namespace std;
 const int BOARD_WIDTH = 80;
 const int BOARD_HEIGHT = 25;
+
+class Point {
+    char sign;
+    std::string color;
+
+public:
+    Point(char sign = ' ', std::string color = "white") {
+        this->sign = sign;
+        this->color = color;
+    }
+
+    char getSign() const {
+        return sign;
+    }
+
+    std::string getColor() const {
+        return color;
+    }
+
+    void setSign(char sign) {
+        this->sign = sign;
+    }
+
+    void setColor(std::string color) {
+        this->color = color;
+    }
+};
+
 
 enum Command {
     DRAW,
@@ -23,72 +51,90 @@ enum Command {
 };
 
 
+void setColor(const string& color) {
+    if (color == "red") {
+        cout << "\033[31m";  
+    } else if (color == "green") {
+        cout << "\033[32m"; 
+    } else if (color == "blue") {
+        cout << "\033[34m"; 
+    } else if (color == "yellow") {
+        cout << "\033[33m";  
+    } else {
+        cout << "\033[0m";   
+    }
+}
+
+
+void resetColor() {
+    cout << "\033[0m";  
+}
+
 
 class Figure {
 protected:
+    string color;   
+    bool isFilled; 
     static int nextID;
     int id;
-    sf::Color color;  
-    bool isFilled;   
 
 public:
-    Figure(sf::Color color = sf::Color::White, bool isFilled = true) 
-        : id(nextID++), color(color), isFilled(isFilled) {}
-
-    virtual void draw(std::vector<std::vector<char>>& grid) const = 0;
+    Figure(string color = "white", bool isFilled = true)
+        : id(nextID++), color(color), isFilled(isFilled) {
+        cout << "Figure color: " << color << endl;
+    }
+   
+    virtual void draw(std::vector<std::vector<Point>>& grid) const = 0;
     virtual string getType() const = 0;
     virtual string getParameters() const = 0;
-    virtual void remove(std::vector<std::vector<char>>& grid) const = 0;
+
+    virtual void remove(std::vector<std::vector<Point>>& grid) const = 0;
     virtual bool isEqual(const Figure& other) const = 0;
     virtual bool isLessThanBoard() const = 0;
     virtual bool isWithinBoard() const = 0;
 
+  
     int getID() const {
         return id;
     }
 
-    sf::Color getColor() const {  
+    
+    string getColor() const {  
         return color;
     }
 
-    string getColorName() const {  
-        if (color == sf::Color::Red) return "red";
-        if (color == sf::Color::Green) return "green";
-        if (color == sf::Color::Blue) return "blue";
-        if (color == sf::Color::Yellow) return "yellow";
-        return "unknown";
-    }
+    //
+    //string getColorName() const {  
+    //    if (color == "red") return "red";
+    //    if (color == "green") return "green";
+    //    if (color == "blue") return "blue";
+    //    if (color == "yellow") return "yellow";
+    //    return "unknown";
+    //}
 
+    
     bool isFigureFilled() const {  
         return isFilled;
     }
 
+   
     virtual ~Figure() = default;
 };
 
-
-int Figure::nextID = 1; 
-
-
-sf::Color getColorFromString(const string& colorName) {
-    if (colorName == "red") return sf::Color::Red;
-    if (colorName == "green") return sf::Color::Green;
-    if (colorName == "blue") return sf::Color::Blue;
-    if (colorName == "yellow") return sf::Color::Yellow;
-    return sf::Color::White;  
-}
+int Figure::nextID = 1;  
 
 
 class Triangle : public Figure {
 private:
     int x, y;
     int height;
-    sf::Color color;
-    bool isFilled;
-public:
 
-    Triangle(int x, int y, int height, sf::Color color, bool isFilled)
+
+public:
+    
+    Triangle(int x, int y, int height, string color, bool isFilled)
         : Figure(color, isFilled), x(x), y(y), height(height) {}
+
 
 
     bool isLessThanBoard() const override {
@@ -116,7 +162,7 @@ public:
     }
 
 
-    void draw(std::vector<std::vector<char>>& grid) const override {
+    void draw(std::vector<std::vector<Point>>& grid) const override {
         if (isFilled) {
             
             for (int i = 0; i < height; ++i) {
@@ -124,6 +170,7 @@ public:
                     int posY = y + i;
                     if (posY >= 0 && posY < BOARD_HEIGHT && j >= 0 && j < BOARD_WIDTH) {
                         grid[posY][j] = '*';  
+                        grid[posY][j].setColor(color);
                     }
                 }
             }
@@ -152,14 +199,11 @@ public:
                 }
             }
         }
-
-        std::cout << "Square drawn with color: " << getColorName() << " and "
-            << (isFilled ? "filled" : "frame") << " mode.\n";
     }
 
 
 
-    void remove(std::vector<std::vector<char>>& grid) const override {
+    void remove(std::vector<std::vector<Point>>& grid) const override {
         if (isFilled) {
             
             for (int i = 0; i < height; ++i) {
@@ -167,6 +211,7 @@ public:
                     int posY = y + i;
                     if (posY >= 0 && posY < BOARD_HEIGHT && j >= 0 && j < BOARD_WIDTH) {
                         grid[posY][j] = ' ';  
+                        grid[i][j].setColor("white");
                     }
                 }
             }
@@ -182,6 +227,7 @@ public:
                         grid[posY][leftMost] = ' '; 
                     if (rightMost >= 0 && rightMost < BOARD_WIDTH && leftMost != rightMost)
                         grid[posY][rightMost] = ' ';  
+                        
                 }
             }
             
@@ -190,6 +236,7 @@ public:
                 int baseY = y + height - 1;
                 if (baseX >= 0 && baseX < BOARD_WIDTH && baseY < BOARD_HEIGHT) {
                     grid[baseY][baseX] = ' ';  
+                    
                 }
             }
         }
@@ -225,11 +272,11 @@ private:
     int x, y;
     int width;
     int height;
-    sf::Color color;
-    bool isFilled;
+
 public:
-    Rectangle(int x, int y, int width, int height, sf::Color color, bool isFilled): 
-        Figure(color, isFilled), x(x), y(y), width(width), height(height) {}
+  
+    Rectangle(int x, int y, int width, int height, string color, bool isFilled) 
+        : Figure(color, isFilled), x(x), y(y), width(width), height(height) {}
 
     bool isLessThanBoard() const override {
         
@@ -257,47 +304,51 @@ public:
     }
 
 
-    void draw(std::vector<std::vector<char>>& grid) const override {
+    void draw(std::vector<std::vector<Point>>& grid) const override {
         if (isFilled) {
             for (int i = y; i <= y + height; ++i) {
                 for (int j = x; j < x + width; ++j) {
                     if (i >= 0 && i < BOARD_HEIGHT && j >= 0 && j < BOARD_WIDTH) {
-                        grid[i][j] = '*';  
+                        grid[i][j].setSign('*');
+                        grid[i][j].setColor(color);
                     }
                 }
             }
         } else {
-            
             for (int j = x; j < x + width; ++j) {
                 if (y >= 0 && y < BOARD_HEIGHT && j >= 0 && j < BOARD_WIDTH) {
-                    grid[y][j] = '*';  
+                    grid[y][j].setSign('*');
+                    grid[y][j].setColor(color);
                 }
                 if (y + height >= 0 && y + height < BOARD_HEIGHT && j >= 0 && j < BOARD_WIDTH) {
-                    grid[y + height][j] = '*';  
+                    grid[y + height][j].setSign('*');
+                    grid[y + height][j].setColor(color);
                 }
             }
-
             for (int i = y; i <= y + height; ++i) {
                 if (i >= 0 && i < BOARD_HEIGHT && x >= 0 && x < BOARD_WIDTH) {
-                    grid[i][x] = '*';  
+                    grid[i][x].setSign('*');
+                    grid[i][x].setColor(color);
                 }
                 if (i >= 0 && i < BOARD_HEIGHT && x + width >= 0 && x + width < BOARD_WIDTH) {
-                    grid[i][x + width] = '*';  
+                    grid[i][x + width].setSign('*');
+                    grid[i][x + width].setColor(color);
                 }
             }
         }
 
-        std::cout << "Rectangle drawn with color: " << getColorName() << " and "
+        std::cout << "Rectangle drawn with color: " << getColor() << " and "
             << (isFilled ? "filled" : "frame") << " mode.\n";
     }
 
-    void remove(std::vector<std::vector<char>>& grid) const override {
+    void remove(std::vector<std::vector<Point>>& grid) const override {
         if (isFilled) {
            
             for (int i = y; i <= y + height; ++i) {
                 for (int j = x; j < x + width; ++j) {
                     if (i >= 0 && i < BOARD_HEIGHT && j >= 0 && j < BOARD_WIDTH) {
                         grid[i][j] = ' '; 
+                        grid[i][j].setColor("white");
                     }
                 }
             }
@@ -309,6 +360,7 @@ public:
                 }
                 if (y + height >= 0 && y + height < BOARD_HEIGHT && j >= 0 && j < BOARD_WIDTH) {
                     grid[y + height][j] = ' ';  
+                    
                 }
             }
 
@@ -318,6 +370,8 @@ public:
                 }
                 if (i >= 0 && i < BOARD_HEIGHT && x + width >= 0 && x + width < BOARD_WIDTH) {
                     grid[i][x + width] = ' ';  
+                   
+                    
                 }
             }
         }
@@ -360,7 +414,7 @@ private:
     int size;
 public:
 
-    Square(int x, int y, int size, sf::Color color, bool isFilled) 
+    Square(int x, int y, int size, string color, bool isFilled) 
         : Figure(color, isFilled), x(x), y(y), size(size) {}
 
     bool isLessThanBoard() const override {
@@ -390,71 +444,69 @@ public:
     }
 
 
-    void draw(std::vector<std::vector<char>>& grid) const override {
-
+    void draw(std::vector<std::vector<Point>>& grid) const override {
         if (isFilled) {
             for (int i = y; i <= y + size; ++i) {
                 for (int j = x; j < x + size; ++j) {
                     if (i >= 0 && i < BOARD_HEIGHT && j >= 0 && j < BOARD_WIDTH) {
-                        grid[i][j] = '*'; 
+                        grid[i][j].setSign('*');
+                        grid[i][j].setColor(color);
                     }
                 }
             }
-        } 
+        }
         else {
-            
             for (int j = x; j < x + size; ++j) {
                 if (y >= 0 && y < BOARD_HEIGHT && j >= 0 && j < BOARD_WIDTH) {
-                    grid[y][j] = '*';  
+                    grid[y][j].setSign('*');
+                    grid[y][j].setColor(color);
                 }
                 if (y + size >= 0 && y + size < BOARD_HEIGHT && j >= 0 && j < BOARD_WIDTH) {
-                    grid[y + size][j] = '*';  
+                    grid[y + size][j].setSign('*');
+                    grid[y + size][j].setColor(color);
                 }
             }
 
-            
             for (int i = y; i <= y + size; ++i) {
                 if (i >= 0 && i < BOARD_HEIGHT && x >= 0 && x < BOARD_WIDTH) {
-                    grid[i][x] = '*';  
+                    grid[i][x].setSign('*');
+                    grid[i][x].setColor(color);
                 }
                 if (i >= 0 && i < BOARD_HEIGHT && x + size >= 0 && x + size < BOARD_WIDTH) {
-                    grid[i][x + size] = '*';  
+                    grid[i][x + size].setSign('*');
+                    grid[i][x + size].setColor(color);
                 }
             }
         }
-
-        std::cout << "Square drawn with color: " << getColorName() << " and "
-            << (isFilled ? "filled" : "frame") << " mode.\n";
     }
 
 
-    void remove(std::vector<std::vector<char>>& grid) const override {
+    void remove(std::vector<std::vector<Point>>& grid) const override {
         if (isFilled) {
-           
             for (int i = y; i <= y + size; ++i) {
                 for (int j = x; j < x + size; ++j) {
                     if (i >= 0 && i < BOARD_HEIGHT && j >= 0 && j < BOARD_WIDTH) {
-                        grid[i][j] = ' '; 
+                        grid[i][j].setSign(' ');
+                        grid[i][j].setColor("white");
                     }
                 }
             }
         } else {
-            
             for (int j = x; j < x + size; ++j) {
                 if (y >= 0 && y < BOARD_HEIGHT && j >= 0 && j < BOARD_WIDTH) {
-                    grid[y][j] = ' ';  
+                    grid[y][j].setSign(' ');
                 }
                 if (y + size >= 0 && y + size < BOARD_HEIGHT && j >= 0 && j < BOARD_WIDTH) {
-                    grid[y + size][j] = ' ';  
+                    grid[y + size][j].setSign(' ');
                 }
             }
 
             for (int i = y; i <= y + size; ++i) {
                 if (i >= 0 && i < BOARD_HEIGHT && x >= 0 && x < BOARD_WIDTH) {
-                    grid[i][x] = ' ';  
+                    grid[i][x].setSign(' ');
                 }
                 if (i >= 0 && i < BOARD_HEIGHT && x + size >= 0 && x + size < BOARD_WIDTH) {
-                    grid[i][x + size] = ' ';  
+                    grid[i][x + size].setSign(' ');
                 }
             }
         }
@@ -488,11 +540,13 @@ public:
 
 class Circle : public Figure {
 private:
+
     int x_center, y_center;
     int radius;
 
+
 public:
-    Circle(int x, int y, int r, sf::Color color, bool isFilled)
+    Circle(int x, int y, int r,string color, bool isFilled)
         : Figure(color, isFilled), x_center(x), y_center(y), radius(r) {}
 
     bool isLessThanBoard() const override {
@@ -505,12 +559,13 @@ public:
     }
 
     bool isEqual(const Figure& other) const override {
-        if (other.getType() != "circle") 
+        if (other.getType() != "circle")
             return false;
         const Circle& otherCircle = dynamic_cast<const Circle&>(other);
         return x_center == otherCircle.x_center && y_center == otherCircle.y_center && radius == otherCircle.radius;
     }
 
+     
 
     bool isWithinBoard() const override {
         if (x_center < 0 || x_center >= BOARD_WIDTH || y_center < 0 || y_center >= BOARD_HEIGHT) {
@@ -520,41 +575,45 @@ public:
         return true;
     }
 
+    void draw(std::vector<std::vector<Point>>& grid) const override {
+       /* cout << "\nwe have BEFORE color in Circle.draw : " << color << "\n";*/
+        setColor(color); 
+       /* cout << "\nwe have AFTER color in Circle.draw : " << color << "\n";*/
 
-    void draw(std::vector<std::vector<char>>& grid) const override {
         int r_squared = radius * radius;
-
         if (isFilled) {
-           
             for (int i = 0; i < BOARD_HEIGHT; ++i) {
                 for (int j = 0; j < BOARD_WIDTH; ++j) {
                     int dx = j - x_center;
                     int dy = i - y_center;
                     int dist_squared = dx * dx + dy * dy;
                     if (dist_squared <= r_squared) {
-                        grid[i][j] = '*';  
+                        grid[i][j] = '*'; 
+                        grid[i][j].setColor(color);
                     }
                 }
             }
         } else {
-            
             for (int i = 0; i < BOARD_HEIGHT; ++i) {
                 for (int j = 0; j < BOARD_WIDTH; ++j) {
                     int dx = j - x_center;
                     int dy = i - y_center;
                     int dist_squared = dx * dx + dy * dy;
                     if (abs(dist_squared - r_squared) <= 1) {
-                        grid[i][j] = '*';  
+                        grid[i][j] = '*'; 
+                        grid[i][j].setColor(color);
                     }
                 }
             }
         }
 
-        std::cout << "Circle drawn with color: " << getColorName() << " and "
-            << (isFilled ? "filled" : "frame") << " mode.\n";
+       resetColor(); 
     }
 
-    void remove(std::vector<std::vector<char>>& grid) const override {
+
+    
+
+    void remove(std::vector<std::vector<Point>>& grid) const override {
         int r_squared = radius * radius;
         for (int i = 0; i < BOARD_HEIGHT; ++i) {
             for (int j = 0; j < BOARD_WIDTH; ++j) {
@@ -563,6 +622,7 @@ public:
                 int dist_squared = dx * dx + dy * dy;
                 if (abs(dist_squared - r_squared) <= 1 || (isFilled && dist_squared <= r_squared)) {
                     grid[i][j] = ' ';  
+                    grid[i][j].setColor("white");
                 }
             }
         }
@@ -590,31 +650,32 @@ public:
     }
 };
 
+
+
 class Board {
 private:
-    vector<std::vector<char>> grid;
+    vector<std::vector<Point>> grid;
     vector<Figure*> figures;
 
 public:
-    Board() : grid(BOARD_HEIGHT, vector<char>(BOARD_WIDTH, ' ')) {
-    }
+    Board() : grid(BOARD_HEIGHT, vector<Point>(BOARD_WIDTH, Point(' ', "white"))) {}
 
     void print() {
-
         cout << '-' << string(BOARD_WIDTH, '-') << '-' << "\n";
-
-
         for (auto& row : grid) {
             cout << '|';
-            for (char c : row) {
-                cout << c;
+            for (auto& point : row) {
+                setColor(point.getColor());
+                cout << point.getSign();
             }
-            cout << '|' << "\n";
+            resetColor();
+            cout << "|\n";
         }
-
-
         cout << '-' << string(BOARD_WIDTH, '-') << '-' << "\n";
     }
+    
+
+
 
 
     void addFigure(Figure* figure) {
@@ -640,6 +701,7 @@ public:
 
         figures.push_back(figure);
         figure->draw(grid);
+        cout << "after draw and color is : " << figure->getColor() << "";
         cout << figure->getType() << " added successfully.\n";
     }
 
@@ -692,13 +754,13 @@ public:
             return;
         }
 
-        file << figures.size() << '\n';//number of figures on the board
+        file << figures.size() << '\n';
 
         for (auto& figure : figures) {
             if (figure->getType() == "circle") {
                 Circle* circle = dynamic_cast<Circle*>(figure);
                 file << "circle " << circle->getX() << " " << circle->getY() << " " << circle->getRadius() 
-                    << " " << circle->getColorName() << " ";
+                    << " " << circle->getColor() << " ";
 
                 if (circle->isFigureFilled()) {
                     file << "fill\n";
@@ -711,7 +773,7 @@ public:
             else if (figure->getType() == "rectangle") {
                 Rectangle* rect = dynamic_cast<Rectangle*>(figure);
                 file << "rectangle " << rect->getX() << " " << rect->getY() << " " << rect->getWidth() << " " << rect->getHeight() 
-                    << " " << rect->getColorName() << " ";
+                    << " " << rect->getColor() << " ";
 
                 if (rect->isFigureFilled()) {
                     file << "fill\n";
@@ -724,7 +786,7 @@ public:
             else if (figure->getType() == "triangle") {
                 Triangle* triangle = dynamic_cast<Triangle*>(figure);
                 file << "triangle " << triangle->getX() << " " << triangle->getY() << " " << triangle->getHeight() 
-                    << " " << triangle->getColorName() << " ";
+                    << " " << triangle->getColor() << " ";
 
                 if (triangle->isFigureFilled()) {
                     file << "fill\n";
@@ -736,7 +798,7 @@ public:
             else if (figure->getType() == "square") {
                 Square* square = dynamic_cast<Square*>(figure);
                 file << "square " << square->getX() << " " << square->getY() << " " << square->getSize() 
-                    << " " << square->getColorName() << " ";
+                    << " " << square->getColor() << " ";
 
                 if (square->isFigureFilled()) {
                     file << "fill\n";
@@ -781,10 +843,10 @@ public:
                 std::string colorName, fillType;
                 file >> x >> y >> r >> colorName >> fillType;
 
-                sf::Color color = getColorFromString(colorName);
+
                 bool isFilled = (fillType == "fill");
 
-                Circle* circle = new Circle(x, y, r, color, isFilled);
+                Circle* circle = new Circle(x, y, r, colorName, isFilled);
                 if (!circle->isLessThanBoard() || !circle->isWithinBoard()) {
                     cout << "Circle is out of bounds or too big and cannot be loaded.\n";
                     delete circle;
@@ -798,10 +860,10 @@ public:
                 std::string colorName, fillType;
                 file >> x >> y >> width >> height >> colorName >> fillType;
 
-                sf::Color color = getColorFromString(colorName);
+                
                 bool isFilled = (fillType == "fill");
 
-                Rectangle* rect = new Rectangle(x, y, width, height, color, isFilled);
+                Rectangle* rect = new Rectangle(x, y, width, height, colorName, isFilled);
                 if (!rect->isLessThanBoard() || !rect->isWithinBoard()) {
                     cout << "Rectangle is out of bounds or too big and cannot be loaded.\n";
                     delete rect;
@@ -815,10 +877,9 @@ public:
                 std::string colorName, fillType;
                 file >> x >> y >> size >> colorName >> fillType;
 
-                sf::Color color = getColorFromString(colorName);
                 bool isFilled = (fillType == "fill");
 
-                Square* square = new Square(x, y, size, color, isFilled);
+                Square* square = new Square(x, y, size, colorName, isFilled);
                 if (!square->isLessThanBoard() || !square->isWithinBoard()) {
                     cout << "Square is out of bounds or too big and cannot be loaded.\n";
                     delete square;
@@ -832,10 +893,9 @@ public:
                 std::string colorName, fillType;
                 file >> x >> y >> height >> colorName >> fillType;
 
-                sf::Color color = getColorFromString(colorName);
                 bool isFilled = (fillType == "fill");
 
-                Triangle* triangle = new Triangle(x, y, height, color, isFilled);
+                Triangle* triangle = new Triangle(x, y, height, colorName, isFilled);
                 if (!triangle->isLessThanBoard() || !triangle->isWithinBoard()) {
                     cout << "Triangle is out of bounds or too big and cannot be loaded.\n";
                     delete triangle;
@@ -861,46 +921,38 @@ public:
         cout << "Enter command (fill/frame color shape params): ";
         cin >> fillType >> colorName >> shapeType;
 
-        // Визначення кольору
-        sf::Color selectedColor;
-        if (colorName == "red") selectedColor = sf::Color::Red;
-        else if (colorName == "green") selectedColor = sf::Color::Green;
-        else if (colorName == "blue") selectedColor = sf::Color::Blue;
-        else if (colorName == "yellow") selectedColor = sf::Color::Yellow;
-        else selectedColor = sf::Color::Black;  // За замовчуванням чорний
-
-        // Визначення типу фігури (fill/frame)
         bool isFilled = (fillType == "fill");
 
-        // Створення фігури на основі вказаного типу
         if (shapeType == "circle") {
             int x, y, r;
             cout << "Enter x_center, y_center, and radius: ";
             cin >> x >> y >> r;
-            Circle* circle = new Circle(x, y, r, selectedColor, isFilled);
+            Circle* circle = new Circle(x, y, r, colorName, isFilled);  
             addFigure(circle);
         } else if (shapeType == "rectangle") {
             int x, y, width, height;
             cout << "Enter top-left x, y, width, and height for the rectangle: ";
             cin >> x >> y >> width >> height;
-            Rectangle* rect = new Rectangle(x, y, width, height, selectedColor, isFilled);
+            Rectangle* rect = new Rectangle(x, y, width, height, colorName, isFilled);  
             addFigure(rect);
         } else if (shapeType == "square") {
             int x, y, size;
             cout << "Enter top-left x, y, and size for the square: ";
             cin >> x >> y >> size;
-            Square* square = new Square(x, y, size, selectedColor, isFilled);
+            Square* square = new Square(x, y, size, colorName, isFilled);  
             addFigure(square);
         } else if (shapeType == "triangle") {
             int x, y, height;
             cout << "Enter base x, y, and height for the triangle: ";
             cin >> x >> y >> height;
-            Triangle* triangle = new Triangle(x, y, height, selectedColor, isFilled);
+            Triangle* triangle = new Triangle(x, y, height, colorName, isFilled);  
             addFigure(triangle);
         } else {
             cout << "Invalid shape type. Please enter circle, rectangle, square, or triangle.\n";
         }
     }
+
+
 
 };
 
@@ -986,8 +1038,17 @@ void run(Board& board) {
 
 
 
+
+
 int main() {
-    sf::RenderWindow window(sf::VideoMode(BOARD_WIDTH,BOARD_HEIGHT), "SFML Drawing Board");
+
+    //setColor("red");
+    //cout << "This should be red text\n";
+    //resetColor();
+
+    //setColor("blue");
+    cout << "This should be blue text\n";
+    resetColor();
     Board board;
     string input;
     showCommand();
