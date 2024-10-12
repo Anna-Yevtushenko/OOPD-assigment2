@@ -34,3 +34,16 @@ Debug/
 Release/
 x64/
 x86/
+
+
+
+SFML-2.6.1/
+
+SFML-2.6.1/include/Vector2.hpp
+SFML-2.6.1/include/Vector2.inl
+SFML-2.6.1/include/Vector3.hpp
+SFML-2.6.1/include/Vector3.inl
+SFML-2.6.1/include/Window.hpp
+SFML-2.6.1/include/*.hpp
+SFML-2.6.1/include/*.inl
+
