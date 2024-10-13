@@ -49,6 +49,7 @@ enum Command {
     LOAD,
     EXIT,
     SELECT,
+    REMOVE,
     INVALID
 };
 
@@ -103,15 +104,6 @@ public:
     string getColor() const {  
         return color;
     }
-
-    //
-    //string getColorName() const {  
-    //    if (color == "red") return "red";
-    //    if (color == "green") return "green";
-    //    if (color == "blue") return "blue";
-    //    if (color == "yellow") return "yellow";
-    //    return "unknown";
-    //}
 
     
     bool isFigureFilled() const {  
@@ -781,31 +773,33 @@ public:
     }
 
 
-    void select(int id) const {
+    Figure* select(int id) const {
         for (const auto& figure : figures) {
             if (figure->getID() == id) {
-                cout << "Figure found by ID:\n< " << figure->getType() << "[" << figure->getParameters() << "]\n";
-                return;
+                cout << "Figure found by ID:" << "\n";
+                return figure;
             }
         }
         cout << "No figure found with the given ID.\n";
+        return nullptr;
     }
 
 
-    void select(int x, int y) const {
+    Figure* select(int x, int y) const {
         bool found = false;  
 
         for (const auto& figure : figures) {
             if (figure->isInside(x, y)) {
-                cout << "Figure found at coordinates (" << x << ", " << y << "):\n< "
-                    << figure->getType() << "[" << figure->getParameters() << "]\n";
-                found = true;
+                cout << "Figure found at coordinates (" << x << ", " << y << "): \n";
+                return figure;
             }
         }
+        return nullptr;
 
-        if (!found) {
-            cout << "No figure found at the given coordinates.\n";
-        }
+        //if (!found) {
+        //    cout << "No figure found at the given coordinates.\n";
+        //    return nullptr;
+        //}
     }
 
 
@@ -1062,10 +1056,31 @@ public:
         }
     }
 
+    void removeShape(int id) {
+        bool found = false;
+
+        
+        for (auto figure = figures.begin(); figure != figures.end(); ++figure) {
+            if ((*figure)->getID() == id) {
+                
+                (*figure)->remove(grid);
+                
+                cout << "< " << (*figure)->getID() << " " << (*figure)->getType() << " removed\n";
+                
+                delete *figure;
+                figures.erase(figure);
+                found = true;
+                break;
+            }
+        }
+
+        if (!found) {
+            cout << "Error: No figure found with ID " << id << "\n";
+        }
+    }
 
 
-
-
+    
 };
 
 
@@ -1096,6 +1111,7 @@ Command getCommandFromInput(const string& input) {
     if (input == "save") return SAVE;
     if (input == "load") return LOAD;
     if (input == "select") return SELECT;
+    if (input == "remove") return REMOVE;
     if (input == "exit") return EXIT;
     return INVALID;
 }
@@ -1104,6 +1120,7 @@ Command getCommandFromInput(const string& input) {
 
 void run(Board& board) {
     string input;
+    Figure* selectedFigure = nullptr; 
     while (true) {
         cout << "> ";
         getline(cin, input);  // Capture the entire line of input
@@ -1154,17 +1171,36 @@ void run(Board& board) {
             int first, second;
             if (ss >> first) {
                 if (ss >> second) {
-                    board.select(first, second);  // Select by coordinates
+                    selectedFigure = board.select(first, second);  
+                    if (selectedFigure != nullptr) {
+                        cout << "< " << selectedFigure->getType() << " [" << selectedFigure->getParameters() << "]\n";
+                    } else {
+                        cout << "Error: No figure found at coordinates (" << first << ", " << second << ")\n";
+                    }
                 } else {
-                    board.select(first);  // Select by ID
+                   
+                    selectedFigure = board.select(first);  
+                    if (selectedFigure != nullptr) {
+                        cout << "< " << selectedFigure->getType() << " [" << selectedFigure->getParameters() << "]\n";
+                    } else {
+                        cout << "Error: No figure found with ID " << first << "\n";
+                    }
                 }
             } else {
                 cout << "Error: Invalid input for select command.\n";
             }
         } 
         else if (command == "exit") {
-            return;  // Exit the loop
+            return; 
         } 
+        else if (command == "remove") {
+            if (selectedFigure != nullptr) {
+                board.removeShape(selectedFigure->getID());  
+                selectedFigure = nullptr; 
+            } else {
+                cout << "Error: No figure selected. Use 'select' first.\n";
+            }
+        }
         else {
             cout << "Invalid command. Please try again.\n";
         }
