@@ -52,6 +52,7 @@ enum Command {
     REMOVE,
     PAINT,
     EDIT,
+    MOVE,
     
     INVALID
 };
@@ -98,6 +99,7 @@ public:
     virtual bool isWithinBoard() const = 0;
     virtual bool isInside(int x, int y) const = 0;
     virtual void edit(const std::vector<int>& param) = 0; 
+    virtual void move(int newX, int newY) = 0; 
 
   
 
@@ -277,6 +279,11 @@ public:
 
     }
 
+    void move(int newX, int newY) override {
+        x = newX;
+        y = newY;
+    }
+
 
     int getX() {
         return x;
@@ -441,9 +448,10 @@ public:
 
     }
 
-    
-
-
+    void move(int newX, int newY) override {
+        x = newX;
+        y = newY;
+    }
 
 
     int getX() {
@@ -605,6 +613,10 @@ public:
 
     }
 
+    void move(int newX, int newY) override {
+        x = newX;
+        y = newY;
+    }
 
 
     string getType() const override {
@@ -751,6 +763,12 @@ public:
         }
             
     }
+
+    void move(int newX, int newY) override {
+        x_center = newX;
+        y_center = newY;
+    }
+
 
 
     int getX() {
@@ -1164,6 +1182,23 @@ public:
     }
 
 
+    void moveFigure(Figure* figure, int newX, int newY) {
+        if (figure != nullptr) {
+            
+            figure->remove(grid);
+
+            
+            figure->move(newX, newY);
+
+          
+            figure->draw(grid);
+
+           
+            cout << "< " << figure->getID() << " " << figure->getType() << " moved to (" << newX << ", " << newY << ").\n";
+        }
+    }
+
+
 
 
     
@@ -1314,6 +1349,7 @@ void run(Board& board) {
                 selectedFigure->draw(board.getGrid());
                 cout << "Figure was updated ";
             }
+
             else {
                 cout << "Error: No figure selected. Use 'select' first.\n";
             }
@@ -1328,6 +1364,22 @@ void run(Board& board) {
                 cout << "Error: No figure selected. Use 'select' first.\n";
             }
         }
+
+        else if (command == "move") {
+            if (selectedFigure != nullptr) {
+                int newX, newY;
+                if (ss >> newX >> newY) {
+                    
+                    selectedFigure->remove(board.getGrid());
+                    board.moveFigure(selectedFigure, newX, newY);
+                    selectedFigure->draw(board.getGrid());
+                } else {
+                    cout << "Error: Invalid coordinates.\n";
+                }
+            } else {
+                cout << "Error: No figure selected. Use 'select' first.\n";
+            }
+            }
         else {
             cout << "Invalid command. Please try again.\n";
         }
