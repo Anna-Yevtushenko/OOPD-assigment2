@@ -2,6 +2,7 @@
 #include <vector>
 #include <string>
 #include <fstream>
+#include <sstream>
 
 //#include <SFML/Graphics.hpp>
 
@@ -47,6 +48,7 @@ enum Command {
     SAVE,
     LOAD,
     EXIT,
+    SELECT,
     INVALID
 };
 
@@ -92,6 +94,7 @@ public:
     virtual bool isEqual(const Figure& other) const = 0;
     virtual bool isLessThanBoard() const = 0;
     virtual bool isWithinBoard() const = 0;
+    virtual bool isInside(int x, int y) const = 0;
 
   
     int getID() const {
@@ -242,6 +245,20 @@ public:
         }
     }
 
+    bool isInside(int x, int y) const override {
+        if (y < this->y || y >= this->y + height) {
+            return false;
+        }
+        int halfBase = y - this->y;
+        if (isFilled) {
+            return (x >= this->x - halfBase && x <= this->x + halfBase); // Inside the filled triangle
+        } else {
+            return (x == this->x - halfBase || x == this->x + halfBase || y == this->y + height - 1); // On the frame of the triangle
+        }
+    }
+
+
+
     int getX() {
         return x;
     }
@@ -378,6 +395,15 @@ public:
     }
 
     
+    bool isInside(int x, int y) const override {
+        if (isFilled) {
+            return (x >= this->x && x <= this->x + width && y >= this->y && y <= this->y + height);
+        } else {
+            return ((x == this->x || x == this->x + width) && (y >= this->y && y <= this->y + height)) ||
+                ((y == this->y || y == this->y + height) && (x >= this->x && x <= this->x + width));
+        }
+    }
+
 
     int getX() {
         return x;
@@ -513,6 +539,17 @@ public:
     }
 
 
+    bool isInside(int x, int y) const override {
+        if (isFilled) {
+            return (x >= this->x && x <= this->x + size && y >= this->y && y <= this->y + size);
+        } else {
+            return ((x == this->x || x == this->x + size) && (y >= this->y && y <= this->y + size)) ||
+                ((y == this->y || y == this->y + size) && (x >= this->x && x <= this->x + size));
+        }
+    }
+
+
+
     string getType() const override {
         return "square";
     }
@@ -546,6 +583,7 @@ private:
 
 
 public:
+
     Circle(int x, int y, int r,string color, bool isFilled)
         : Figure(color, isFilled), x_center(x), y_center(y), radius(r) {}
 
@@ -627,6 +665,19 @@ public:
             }
         }
     }
+
+
+    bool isInside(int x, int y) const override {
+        int dx = x - x_center;
+        int dy = y - y_center;
+        int dist_squared = dx * dx + dy * dy;
+        if (isFilled) {
+            return dist_squared <= radius * radius; // Inside the filled circle
+        } else {
+            return abs(dist_squared - radius * radius) <= 1; // On the frame of the circle
+        }
+    }
+
 
 
     int getX() {
@@ -730,6 +781,35 @@ public:
         cout << "Example for rectangle, type: fill, color: green, x: 15, y: 5, width: 10, height: 5\n";
         cout << "Example for square, type: frame, color: yellow, x: 20, y: 10, size: 5\n";
     }
+
+
+    void select(int id) const {
+        for (const auto& figure : figures) {
+            if (figure->getID() == id) {
+                cout << "Figure found by ID:\n< " << figure->getType() << "[" << figure->getParameters() << "]\n";
+                return;
+            }
+        }
+        cout << "No figure found with the given ID.\n";
+    }
+
+
+    void select(int x, int y) const {
+        bool found = false;  
+
+        for (const auto& figure : figures) {
+            if (figure->isInside(x, y)) {
+                cout << "Figure found at coordinates (" << x << ", " << y << "):\n< "
+                    << figure->getType() << "[" << figure->getParameters() << "]\n";
+                found = true;
+            }
+        }
+
+        if (!found) {
+            cout << "No figure found at the given coordinates.\n";
+        }
+    }
+
 
 
     void undo() {
@@ -954,6 +1034,7 @@ public:
 
 
 
+
 };
 
 
@@ -969,7 +1050,8 @@ void showCommand() {
     cout << "6. clear\n";
     cout << "7. save <file>\n";
     cout << "8. load <file>\n";
-    cout << "9. exit\n";
+    cout << "9. select <file>\n";
+    cout << "10. exit\n";
 }
 
 
@@ -982,6 +1064,7 @@ Command getCommandFromInput(const string& input) {
     if (input == "clear") return CLEAR;
     if (input == "save") return SAVE;
     if (input == "load") return LOAD;
+    if (input == "select") return SELECT;
     if (input == "exit") return EXIT;
     return INVALID;
 }
@@ -1026,6 +1109,32 @@ void run(Board& board) {
             board.load(filepath);
             break;
         }
+        case SELECT: {
+            string input;
+            cout << "Enter either figure ID or x y coordinates: ";
+            cin.ignore();
+            getline(cin, input); 
+
+            
+            stringstream ss(input);
+            int first, second;
+
+           
+            if (ss >> first) {
+                if (ss >> second) {
+                    
+                    board.select(first, second);  
+                } else {
+                   
+                    board.select(first);  
+                }
+            } else {
+                cout << "Invalid input. Please enter either figure ID or x y coordinates.\n";
+            }
+            break;
+        }
+
+
         case EXIT:
             return; 
         case INVALID:
@@ -1042,11 +1151,7 @@ void run(Board& board) {
 
 int main() {
 
-    //setColor("red");
-    //cout << "This should be red text\n";
-    //resetColor();
 
-    //setColor("blue");
     cout << "This should be blue text\n";
     resetColor();
     Board board;
