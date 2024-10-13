@@ -3,12 +3,11 @@
 #include <string>
 #include <fstream>
 #include <sstream>
-
-//#include <SFML/Graphics.hpp>
-
 using namespace std;
+
 const int BOARD_WIDTH = 80;
 const int BOARD_HEIGHT = 25;
+
 
 class Point {
     char sign;
@@ -53,9 +52,27 @@ enum Command {
     PAINT,
     EDIT,
     MOVE,
-    
     INVALID
 };
+
+
+enum ShapesType {
+    CIRCLE,
+    RECTANGLE,
+    SQUARE,
+    TRIANGLE,
+    INVALID_SHAPE
+};
+
+
+ShapesType getShapesTypeFromString(const std::string& shapeType) {
+    if (shapeType == "circle") return CIRCLE;
+    if (shapeType == "rectangle") return RECTANGLE;
+    if (shapeType == "square") return SQUARE;
+    if (shapeType == "triangle") return TRIANGLE;
+    return INVALID_SHAPE;
+}
+
 
 
 void setColor(const string& color) {
@@ -306,10 +323,6 @@ public:
     }
 };
 
-
-
-
-
 class Rectangle : public Figure {
 private:
     int x, y;
@@ -479,10 +492,6 @@ public:
 
 };
 
-
-
-
-
 class Square : public Figure {
 private:
     int x, y;
@@ -640,10 +649,6 @@ public:
     }
 };
 
-
-
-
-
 class Circle : public Figure {
 private:
 
@@ -792,8 +797,6 @@ public:
     }
 };
 
-
-
 class Board {
 private:
     vector<std::vector<Point>> grid;
@@ -821,12 +824,7 @@ public:
     }
     
 
-
-
-
     void addFigure(Figure* figure) {
-
-
         for (const auto& existingFigure : figures) {
             if (figure->isEqual(*existingFigure)) {
                 cout << "This figure is already exist.\n";
@@ -1090,70 +1088,77 @@ public:
 
 
     void addShape(const string& input) {
-        stringstream ss(input);
-        string fillType, colorName, shapeType;
 
-        
-        if (!(ss >> fillType >> colorName >> shapeType)) {
-            cout << "Error: Invalid input format. Please enter fill/frame, color, and shape type.\n";
+        std::stringstream ss(input);
+        std::string fillType, colorName, shapeTypeStr;
+
+        if (!(ss >> fillType >> colorName >> shapeTypeStr)) {
+            std::cout << "Incorrect input format. Please enter fill/frame, color, and shape type.\n";
             return;
         }
 
-        
         bool isFilled;
         if (fillType == "fill") {
             isFilled = true;
         } else if (fillType == "frame") {
             isFilled = false;
         } else {
-            cout << "Error: Invalid fill type. Use 'fill' or 'frame'.\n";
+            std::cout << "Incorrect fill type. Use 'fill' or 'frame'.\n";
             return;
         }
 
         if (colorName != "red" && colorName != "green" && colorName != "blue" && colorName != "yellow") {
-            cout << "Error: Invalid color. Allowed colors are red, green, blue, or yellow.\n";
+            std::cout << "Incorrect colors. Allowed colors are red, green, blue, or yellow.\n";
             return;
         }
 
-        
-        if (shapeType == "circle") {
+        ShapesType shapeType = getShapesTypeFromString(shapeTypeStr);
+
+        switch (shapeType) {
+        case CIRCLE: {
             int x, y, radius;
             if (ss >> x >> y >> radius) {
                 Circle* circle = new Circle(x, y, radius, colorName, isFilled);
                 addFigure(circle);
-                
             } else {
-                cout << "Error: Invalid parameters for circle. Expected format: 'add fill red circle x y radius'.\n";
+                std::cout << "Incorrect parameters for circle. Expected format: 'add fill red circle x y radius'.\n";
             }
-        } else if (shapeType == "rectangle") {
+            break;
+        }
+        case RECTANGLE: {
             int x, y, width, height;
             if (ss >> x >> y >> width >> height) {
                 Rectangle* rect = new Rectangle(x, y, width, height, colorName, isFilled);
                 addFigure(rect);
-                
             } else {
-                cout << "Error: Invalid parameters for rectangle. Expected format: 'add fill red rectangle x y width height'.\n";
+                std::cout << "Incorrect parameters for rectangle. Expected format: 'add fill red rectangle x y width height'.\n";
             }
-        } else if (shapeType == "square") {
+            break;
+        }
+        case SQUARE: {
             int x, y, size;
             if (ss >> x >> y >> size) {
                 Square* square = new Square(x, y, size, colorName, isFilled);
                 addFigure(square);
-               
             } else {
-                cout << "Error: Invalid parameters for square. Expected format: 'add fill red square x y size'.\n";
+                std::cout << "Incorrect parameters for square. Expected format: 'add fill red square x y size'.\n";
             }
-        } else if (shapeType == "triangle") {
+            break;
+        }
+        case TRIANGLE: {
             int x, y, height;
             if (ss >> x >> y >> height) {
                 Triangle* triangle = new Triangle(x, y, height, colorName, isFilled);
                 addFigure(triangle);
-               
             } else {
-                cout << "Error: Invalid parameters for triangle. Expected format: 'add fill red triangle x y height'.\n";
+                std::cout << "Incorrect parameters for triangle. Expected format: 'add fill red triangle x y height'.\n";
             }
-        } else {
-            cout << "Invalid shape type. Please enter circle, rectangle, square, or triangle.\n";
+            break;
+        }
+        case INVALID_SHAPE:
+        default:
+            std::cout << "Incorrect shapes type. Please enter circle, rectangle, square, or triangle.\n";
+            break;
         }
     }
 
@@ -1199,12 +1204,7 @@ public:
     }
 
 
-
-
-    
 };
-
-
 
 
 void showCommand() {
@@ -1220,6 +1220,7 @@ void showCommand() {
     cout << "9. select <file>\n";
     cout << "10. paint\n";
     cout << "11. edit\n";
+    cout << "12. move\n";
     cout << "13. exit\n";
 }
 
@@ -1238,152 +1239,144 @@ Command getCommandFromInput(const string& input) {
     if (input == "exit") return EXIT;
     if (input == "paint") return PAINT;
     if (input == "edit") return EDIT;
+    if (input == "move") return MOVE;
 
     return INVALID;
 }
 
 
-
 void run(Board& board) {
-    string input;
+    std::string input;
     Figure* selectedFigure = nullptr; 
+
     while (true) {
-        cout << "> ";
-        getline(cin, input);  
+        std::cout << "> ";
+        std::getline(std::cin, input);
 
-        stringstream ss(input);
-        string command;
-        ss >> command;  
+        std::stringstream ss(input);
+        std::string commandStr;
+        ss >> commandStr;
 
-        if (command == "draw") {
+        Command command = getCommandFromInput(commandStr);
+
+        switch (command) {
+        case DRAW:
             board.print();
-        } 
-        else if (command == "list") {
+            break;
+        case LIST:
             board.list();
-        } 
-        else if (command == "shapes") {
+            break;
+        case SHAPES:
             board.shapes();
-        } 
-        else if (command == "add") {
-            string params;
-            getline(ss, params); 
-            board.addShape(params);  
-        } 
-        else if (command == "undo") {
+            break;
+        case ADD: {
+                std::string params;
+                std::getline(ss, params);
+                board.addShape(params);
+                break;
+        }
+        case UNDO:
             board.undo();
-        } 
-        else if (command == "clear") {
+            break;
+        case CLEAR:
             board.clear();
-        } 
-        else if (command == "save") {
-            string filepath;
-            ss >> filepath;
-            if (!filepath.empty()) {
-                board.save(filepath);
-            } else {
-                cout << "Error: No file path provided.\n";
-            }
-        } 
-        else if (command == "load") {
-            string filepath;
+            break;
+        case SAVE: {
+                std::string filepath;
+                ss >> filepath;
+                if (!filepath.empty()) {
+                    board.save(filepath);
+                } else {
+                    std::cout << "Error: No file path provided.\n";
+                }
+                break;
+        }
+        case LOAD: {
+            std::string filepath;
             ss >> filepath;
             if (!filepath.empty()) {
                 board.load(filepath);
             } else {
-                cout << "Error: No file path provided.\n";
+                std::cout << "Error: No file path provided.\n";
             }
-        } 
-        else if (command == "select") {
+            break;
+        }
+        case SELECT: {
             int first, second;
             if (ss >> first) {
                 if (ss >> second) {
-                    selectedFigure = board.select(first, second);  
-                    if (selectedFigure != nullptr) {
-                        cout << "< " << selectedFigure->getType() << " [" << selectedFigure->getParameters() << "]\n";
-                    } else {
-                        cout << "Error: No figure found at coordinates (" << first << ", " << second << ")\n";
-                    }
+                    selectedFigure = board.select(first, second);
                 } else {
-                   
-                    selectedFigure = board.select(first);  
-                    if (selectedFigure != nullptr) {
-                        cout << "< " << selectedFigure->getType() << " [" << selectedFigure->getParameters() << "]\n";
-                    } else {
-                        cout << "Error: No figure found with ID " << first << "\n";
-                    }
+                    selectedFigure = board.select(first);
+                }
+                if (selectedFigure != nullptr) {
+                    cout << "< " << selectedFigure->getType() << " [" << selectedFigure->getParameters() << "]\n";
                 }
             } else {
                 cout << "Error: Invalid input for select command.\n";
             }
-        } 
-        else if (command == "exit") {
-            return; 
-        } 
-
-        else if (command == "paint") {
-            string newColor;
-            if (selectedFigure != nullptr) {
-                ss >> newColor;
-                selectedFigure->remove(board.getGrid());
-                
-                selectedFigure->paint(newColor);
-                selectedFigure->draw(board.getGrid());
-
-                cout << "< " << selectedFigure->getID() << " " << selectedFigure->getType() 
-                    << " [" << selectedFigure->getParameters() << "] color changed to " << newColor << ".\n";
-            } else {
-                cout << "Error: No figure selected. Use 'select' first.\n";
-            }
+            break;
         }
-
-        else if (command == "edit") {
+        case REMOVE:
             if (selectedFigure != nullptr) {
-                vector<int> params;
+                board.removeShape(selectedFigure->getID());
+                selectedFigure = nullptr;
+            } else {
+                std::cout << "Error: No figure selected. Use 'select' first.\n";
+            }
+            break;
+        case PAINT: {
+                std::string newColor;
+                if (selectedFigure != nullptr) {
+                    ss >> newColor;
+                    selectedFigure->remove(board.getGrid());
+                    selectedFigure->paint(newColor);
+                    selectedFigure->draw(board.getGrid());
+                    std::cout << "< " << selectedFigure->getID() << " " << selectedFigure->getType() 
+                        << " [" << selectedFigure->getParameters() << "] color changed to " << newColor << ".\n";
+                } else {
+                    std::cout << "Error: No figure selected. Use 'select' first.\n";
+                }
+                break;
+        }
+        case EDIT: {
+            if (selectedFigure != nullptr) {
+                std::vector<int> params;
                 int param;
-                
                 while (ss >> param) {
                     params.push_back(param);
                 }
                 selectedFigure->remove(board.getGrid());
                 selectedFigure->edit(params);
                 selectedFigure->draw(board.getGrid());
-                cout << "Figure was updated ";
-            }
-
-            else {
-                cout << "Error: No figure selected. Use 'select' first.\n";
-            }
-        }
-
-
-        else if (command == "remove") {
-            if (selectedFigure != nullptr) {
-                board.removeShape(selectedFigure->getID());  
-                selectedFigure = nullptr; 
+                std::cout << "Figure was updated.\n";
             } else {
-                cout << "Error: No figure selected. Use 'select' first.\n";
+                std::cout << "Error: No figure selected. Use 'select' first.\n";
             }
+            break;
         }
-
-        else if (command == "move") {
+        case MOVE: {
             if (selectedFigure != nullptr) {
                 int newX, newY;
                 if (ss >> newX >> newY) {
-                    
                     selectedFigure->remove(board.getGrid());
                     board.moveFigure(selectedFigure, newX, newY);
                     selectedFigure->draw(board.getGrid());
                 } else {
-                    cout << "Error: Invalid coordinates.\n";
+                    std::cout << "Error: Invalid coordinates.\n";
                 }
             } else {
-                cout << "Error: No figure selected. Use 'select' first.\n";
+                std::cout << "Error: No figure selected. Use 'select' first.\n";
             }
-            }
-        else {
-            cout << "Invalid command. Please try again.\n";
+            break;
         }
-
+        case EXIT:
+            return;
+        case INVALID:
+        default:
+            std::cout << "Invalid command. Please try again.\n";
+            break;
+        }
     }
 }
 
@@ -1392,16 +1385,12 @@ void run(Board& board) {
 
 
 int main() {
-
-
     cout << "This should be blue text\n";
     resetColor();
     Board board;
     string input;
     showCommand();
     run(board);
-   
-
     return 0;
 }
 
