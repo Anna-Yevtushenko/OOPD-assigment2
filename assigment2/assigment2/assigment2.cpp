@@ -82,9 +82,7 @@ protected:
 
 public:
     Figure(string color = "white", bool isFilled = true)
-        : id(nextID++), color(color), isFilled(isFilled) {
-        cout << "Figure color: " << color << endl;
-    }
+        : id(nextID++), color(color), isFilled(isFilled) {}
    
     virtual void draw(std::vector<std::vector<Point>>& grid) const = 0;
     virtual string getType() const = 0;
@@ -752,7 +750,7 @@ public:
 
         figures.push_back(figure);
         figure->draw(grid);
-        cout << "after draw and color is : " << figure->getColor() << "";
+        /*cout << "after draw and color is : " << figure->getColor() << "";*/
         cout << figure->getType() << " added successfully.\n";
     }
 
@@ -996,41 +994,74 @@ public:
     }
 
 
-    void addShape() {
+    void addShape(const string& input) {
+        stringstream ss(input);
         string fillType, colorName, shapeType;
-        cout << "Enter command (fill/frame color shape params): ";
-        cin >> fillType >> colorName >> shapeType;
 
-        bool isFilled = (fillType == "fill");
+        
+        if (!(ss >> fillType >> colorName >> shapeType)) {
+            cout << "Error: Invalid input format. Please enter fill/frame, color, and shape type.\n";
+            return;
+        }
 
+        
+        bool isFilled;
+        if (fillType == "fill") {
+            isFilled = true;
+        } else if (fillType == "frame") {
+            isFilled = false;
+        } else {
+            cout << "Error: Invalid fill type. Use 'fill' or 'frame'.\n";
+            return;
+        }
+
+        if (colorName != "red" && colorName != "green" && colorName != "blue" && colorName != "yellow") {
+            cout << "Error: Invalid color. Allowed colors are red, green, blue, or yellow.\n";
+            return;
+        }
+
+        
         if (shapeType == "circle") {
-            int x, y, r;
-            cout << "Enter x_center, y_center, and radius: ";
-            cin >> x >> y >> r;
-            Circle* circle = new Circle(x, y, r, colorName, isFilled);  
-            addFigure(circle);
+            int x, y, radius;
+            if (ss >> x >> y >> radius) {
+                Circle* circle = new Circle(x, y, radius, colorName, isFilled);
+                addFigure(circle);
+                
+            } else {
+                cout << "Error: Invalid parameters for circle. Expected format: 'add fill red circle x y radius'.\n";
+            }
         } else if (shapeType == "rectangle") {
             int x, y, width, height;
-            cout << "Enter top-left x, y, width, and height for the rectangle: ";
-            cin >> x >> y >> width >> height;
-            Rectangle* rect = new Rectangle(x, y, width, height, colorName, isFilled);  
-            addFigure(rect);
+            if (ss >> x >> y >> width >> height) {
+                Rectangle* rect = new Rectangle(x, y, width, height, colorName, isFilled);
+                addFigure(rect);
+                
+            } else {
+                cout << "Error: Invalid parameters for rectangle. Expected format: 'add fill red rectangle x y width height'.\n";
+            }
         } else if (shapeType == "square") {
             int x, y, size;
-            cout << "Enter top-left x, y, and size for the square: ";
-            cin >> x >> y >> size;
-            Square* square = new Square(x, y, size, colorName, isFilled);  
-            addFigure(square);
+            if (ss >> x >> y >> size) {
+                Square* square = new Square(x, y, size, colorName, isFilled);
+                addFigure(square);
+               
+            } else {
+                cout << "Error: Invalid parameters for square. Expected format: 'add fill red square x y size'.\n";
+            }
         } else if (shapeType == "triangle") {
             int x, y, height;
-            cout << "Enter base x, y, and height for the triangle: ";
-            cin >> x >> y >> height;
-            Triangle* triangle = new Triangle(x, y, height, colorName, isFilled);  
-            addFigure(triangle);
+            if (ss >> x >> y >> height) {
+                Triangle* triangle = new Triangle(x, y, height, colorName, isFilled);
+                addFigure(triangle);
+               
+            } else {
+                cout << "Error: Invalid parameters for triangle. Expected format: 'add fill red triangle x y height'.\n";
+            }
         } else {
             cout << "Invalid shape type. Please enter circle, rectangle, square, or triangle.\n";
         }
     }
+
 
 
 
@@ -1075,72 +1106,67 @@ void run(Board& board) {
     string input;
     while (true) {
         cout << "> ";
-        cin >> input;
-        Command cmd = getCommandFromInput(input);
+        getline(cin, input);  // Capture the entire line of input
 
-        switch (cmd) {
-        case DRAW:
+        stringstream ss(input);
+        string command;
+        ss >> command;  // Extract the first word, which is the command
+
+        if (command == "draw") {
             board.print();
-            break;
-        case LIST:
+        } 
+        else if (command == "list") {
             board.list();
-            break;
-        case SHAPES:
+        } 
+        else if (command == "shapes") {
             board.shapes();
-            break;
-        case ADD:
-            board.addShape();
-            break;
-        case UNDO:
+        } 
+        else if (command == "add") {
+            string params;
+            getline(ss, params);  // Extract the rest of the line for parameters
+            board.addShape(params);  // Pass the parameters to addShape
+        } 
+        else if (command == "undo") {
             board.undo();
-            break;
-        case CLEAR:
+        } 
+        else if (command == "clear") {
             board.clear();
-            break;
-        case SAVE: {
-                string filepath;
-                cin >> filepath;
-                board.save(filepath);
-                break;
-        }
-        case LOAD: {
+        } 
+        else if (command == "save") {
             string filepath;
-            cin >> filepath;
-            board.load(filepath);
-            break;
-        }
-        case SELECT: {
-            string input;
-            cout << "Enter either figure ID or x y coordinates: ";
-            cin.ignore();
-            getline(cin, input); 
-
-            
-            stringstream ss(input);
+            ss >> filepath;
+            if (!filepath.empty()) {
+                board.save(filepath);
+            } else {
+                cout << "Error: No file path provided.\n";
+            }
+        } 
+        else if (command == "load") {
+            string filepath;
+            ss >> filepath;
+            if (!filepath.empty()) {
+                board.load(filepath);
+            } else {
+                cout << "Error: No file path provided.\n";
+            }
+        } 
+        else if (command == "select") {
             int first, second;
-
-           
             if (ss >> first) {
                 if (ss >> second) {
-                    
-                    board.select(first, second);  
+                    board.select(first, second);  // Select by coordinates
                 } else {
-                   
-                    board.select(first);  
+                    board.select(first);  // Select by ID
                 }
             } else {
-                cout << "Invalid input. Please enter either figure ID or x y coordinates.\n";
+                cout << "Error: Invalid input for select command.\n";
             }
-            break;
-        }
-
-
-        case EXIT:
-            return; 
-        case INVALID:
+        } 
+        else if (command == "exit") {
+            return;  // Exit the loop
+        } 
+        else {
             cout << "Invalid command. Please try again.\n";
-            showCommand();
-            break;
         }
     }
 }
