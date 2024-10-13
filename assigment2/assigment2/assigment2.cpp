@@ -50,6 +50,7 @@ enum Command {
     EXIT,
     SELECT,
     REMOVE,
+    PAINT,
     INVALID
 };
 
@@ -96,6 +97,7 @@ public:
     virtual bool isInside(int x, int y) const = 0;
 
   
+
     int getID() const {
         return id;
     }
@@ -110,7 +112,15 @@ public:
         return isFilled;
     }
 
-   
+    void paint(const string& newColor) {
+        if (newColor == "red" || newColor == "green" || newColor == "blue" || newColor == "yellow") {
+            color = newColor;
+            cout << "Figure ID " << id << " color changed to " << newColor << ".\n";
+        } else {
+            cout << "Error: Invalid color. Allowed colors are red, green, blue, or yellow.\n";
+        }
+    }
+
     virtual ~Figure() = default;
 };
 
@@ -701,6 +711,10 @@ private:
 public:
     Board() : grid(BOARD_HEIGHT, vector<Point>(BOARD_WIDTH, Point(' ', "white"))) {}
 
+    vector<std::vector<Point>>& getGrid() {
+        return grid;
+    }
+
     void print() {
         cout << '-' << string(BOARD_WIDTH, '-') << '-' << "\n";
         for (auto& row : grid) {
@@ -742,7 +756,6 @@ public:
 
         figures.push_back(figure);
         figure->draw(grid);
-        /*cout << "after draw and color is : " << figure->getColor() << "";*/
         cout << figure->getType() << " added successfully.\n";
     }
 
@@ -796,10 +809,7 @@ public:
         }
         return nullptr;
 
-        //if (!found) {
-        //    cout << "No figure found at the given coordinates.\n";
-        //    return nullptr;
-        //}
+      
     }
 
 
@@ -1080,6 +1090,8 @@ public:
     }
 
 
+
+
     
 };
 
@@ -1113,6 +1125,8 @@ Command getCommandFromInput(const string& input) {
     if (input == "select") return SELECT;
     if (input == "remove") return REMOVE;
     if (input == "exit") return EXIT;
+    if (input == "paint") return PAINT;
+
     return INVALID;
 }
 
@@ -1193,6 +1207,29 @@ void run(Board& board) {
         else if (command == "exit") {
             return; 
         } 
+
+        else if (command == "paint") {
+            string newColor;
+            if (selectedFigure != nullptr) {
+                ss >> newColor;
+
+                // Спочатку видаляємо фігуру зі старим кольором
+                selectedFigure->remove(board.getGrid());
+
+                // Змінюємо колір
+                selectedFigure->paint(newColor);
+
+                // Малюємо фігуру заново з новим кольором
+                selectedFigure->draw(board.getGrid());
+
+                cout << "< " << selectedFigure->getID() << " " << selectedFigure->getType() 
+                    << " [" << selectedFigure->getParameters() << "] color changed to " << newColor << ".\n";
+            } else {
+                cout << "Error: No figure selected. Use 'select' first.\n";
+            }
+        }
+
+
         else if (command == "remove") {
             if (selectedFigure != nullptr) {
                 board.removeShape(selectedFigure->getID());  
