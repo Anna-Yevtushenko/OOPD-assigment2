@@ -51,6 +51,8 @@ enum Command {
     SELECT,
     REMOVE,
     PAINT,
+    EDIT,
+    
     INVALID
 };
 
@@ -95,6 +97,7 @@ public:
     virtual bool isLessThanBoard() const = 0;
     virtual bool isWithinBoard() const = 0;
     virtual bool isInside(int x, int y) const = 0;
+    virtual void edit(const std::vector<int>& param) = 0; 
 
   
 
@@ -258,6 +261,22 @@ public:
     }
 
 
+    void edit(const vector<int>& param) override {
+        if (param.size() == 1) {
+            int newHeight = param[0];
+            if (newHeight > 0 && newHeight <= BOARD_HEIGHT) {
+                height = newHeight;
+            }
+            else {
+                cout << "Invalid height value: too small or too big";
+            }
+        }
+        else {
+            cout << "Incorrect argument count , enter new  height of a triangle ";
+        }
+
+    }
+
 
     int getX() {
         return x;
@@ -404,6 +423,28 @@ public:
         }
     }
 
+    void edit(const vector<int>& param)override {
+        if (param.size() == 2) {
+            int newWidth = param[0];
+            int newHeight = param[1];
+            if (newWidth > 0 && newWidth <= BOARD_WIDTH && newHeight>0 && newHeight <= BOARD_HEIGHT) {
+                width = newWidth;
+                height = newHeight;
+            }
+            else {
+                cout << "Invalid width or height values: too small or too big";
+            }
+        }
+        else {
+            cout << "Incorrect argument count , enter new width and height";
+        }
+
+    }
+
+    
+
+
+
 
     int getX() {
         return x;
@@ -548,6 +589,22 @@ public:
         }
     }
 
+    void edit(const vector<int>& param) override  {
+        if (param.size() == 1) {
+            int newSide = param[0];
+            if (newSide > 0 && newSide <= BOARD_HEIGHT) {
+                size = newSide;
+            }
+            else {
+                cout << "Invalid size value: too small or too big";
+            }
+        }
+        else {
+            cout << "Incorrect argument count , enter new  side of a square ";
+        }
+
+    }
+
 
 
     string getType() const override {
@@ -584,8 +641,9 @@ private:
 
 public:
 
-    Circle(int x, int y, int r,string color, bool isFilled)
+    Circle(int x, int y, int r, string color, bool isFilled)
         : Figure(color, isFilled), x_center(x), y_center(y), radius(r) {}
+       
 
     bool isLessThanBoard() const override {
 
@@ -678,6 +736,21 @@ public:
         }
     }
 
+    void edit(const vector<int>& param) override {
+        if (param.size() == 1) {
+            int newRadius = param[0];
+            if (newRadius > 0 && newRadius <= BOARD_HEIGHT) {
+                radius = newRadius;
+            }
+            else {
+                cout << "Invalid radius value: too small or too big";
+            }
+        }
+        else {
+            cout << "Incorrect argument count , enter new radius";
+        }
+            
+    }
 
 
     int getX() {
@@ -1066,6 +1139,7 @@ public:
         }
     }
 
+
     void removeShape(int id) {
         bool found = false;
 
@@ -1109,7 +1183,9 @@ void showCommand() {
     cout << "7. save <file>\n";
     cout << "8. load <file>\n";
     cout << "9. select <file>\n";
-    cout << "10. exit\n";
+    cout << "10. paint\n";
+    cout << "11. edit\n";
+    cout << "13. exit\n";
 }
 
 
@@ -1126,6 +1202,7 @@ Command getCommandFromInput(const string& input) {
     if (input == "remove") return REMOVE;
     if (input == "exit") return EXIT;
     if (input == "paint") return PAINT;
+    if (input == "edit") return EDIT;
 
     return INVALID;
 }
@@ -1137,11 +1214,11 @@ void run(Board& board) {
     Figure* selectedFigure = nullptr; 
     while (true) {
         cout << "> ";
-        getline(cin, input);  // Capture the entire line of input
+        getline(cin, input);  
 
         stringstream ss(input);
         string command;
-        ss >> command;  // Extract the first word, which is the command
+        ss >> command;  
 
         if (command == "draw") {
             board.print();
@@ -1154,8 +1231,8 @@ void run(Board& board) {
         } 
         else if (command == "add") {
             string params;
-            getline(ss, params);  // Extract the rest of the line for parameters
-            board.addShape(params);  // Pass the parameters to addShape
+            getline(ss, params); 
+            board.addShape(params);  
         } 
         else if (command == "undo") {
             board.undo();
@@ -1212,19 +1289,32 @@ void run(Board& board) {
             string newColor;
             if (selectedFigure != nullptr) {
                 ss >> newColor;
-
-                // Спочатку видаляємо фігуру зі старим кольором
                 selectedFigure->remove(board.getGrid());
-
-                // Змінюємо колір
+                
                 selectedFigure->paint(newColor);
-
-                // Малюємо фігуру заново з новим кольором
                 selectedFigure->draw(board.getGrid());
 
                 cout << "< " << selectedFigure->getID() << " " << selectedFigure->getType() 
                     << " [" << selectedFigure->getParameters() << "] color changed to " << newColor << ".\n";
             } else {
+                cout << "Error: No figure selected. Use 'select' first.\n";
+            }
+        }
+
+        else if (command == "edit") {
+            if (selectedFigure != nullptr) {
+                vector<int> params;
+                int param;
+                
+                while (ss >> param) {
+                    params.push_back(param);
+                }
+                selectedFigure->remove(board.getGrid());
+                selectedFigure->edit(params);
+                selectedFigure->draw(board.getGrid());
+                cout << "Figure was updated ";
+            }
+            else {
                 cout << "Error: No figure selected. Use 'select' first.\n";
             }
         }
@@ -1241,6 +1331,7 @@ void run(Board& board) {
         else {
             cout << "Invalid command. Please try again.\n";
         }
+
     }
 }
 
