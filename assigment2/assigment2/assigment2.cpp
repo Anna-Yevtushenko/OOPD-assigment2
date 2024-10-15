@@ -12,29 +12,39 @@ const int BOARD_HEIGHT = 25;
 class Point {
     char sign;
     std::string color;
+    int priority; 
 
 public:
-    Point(char sign = ' ', std::string color = "white") {
+   
+    Point(char sign = ' ', std::string color = "white", int priority = 0) {
         this->sign = sign;
         this->color = color;
+        this->priority = priority;
     }
 
+   
     char getSign() const {
         return sign;
     }
 
+    
     std::string getColor() const {
         return color;
     }
 
+    
     void setSign(char sign) {
         this->sign = sign;
     }
 
+    
     void setColor(std::string color) {
         this->color = color;
     }
+
+
 };
+
 
 
 enum Command {
@@ -149,6 +159,7 @@ public:
 int Figure::nextID = 1;  
 
 
+
 class Triangle : public Figure {
 private:
     int x, y;
@@ -188,13 +199,14 @@ public:
 
 
     void draw(std::vector<std::vector<Point>>& grid) const override {
+        char colorSymbol = color[0];
         if (isFilled) {
             
             for (int i = 0; i < height; ++i) {
                 for (int j = x - i; j <= x + i; ++j) {
                     int posY = y + i;
                     if (posY >= 0 && posY < BOARD_HEIGHT && j >= 0 && j < BOARD_WIDTH) {
-                        grid[posY][j] = '*';  
+                        grid[posY][j] = colorSymbol;  
                         grid[posY][j].setColor(color);
                     }
                 }
@@ -210,9 +222,9 @@ public:
 
                 if (posY < BOARD_HEIGHT) {
                     if (leftMost >= 0 && leftMost < BOARD_WIDTH)
-                        grid[posY][leftMost] = '*'; 
+                        grid[posY][leftMost] = colorSymbol; 
                     if (rightMost >= 0 && rightMost < BOARD_WIDTH && leftMost != rightMost)
-                        grid[posY][rightMost] = '*';  
+                        grid[posY][rightMost] = colorSymbol;  
                 }
             }
             
@@ -220,7 +232,7 @@ public:
                 int baseX = x - height + 1 + j;
                 int baseY = y + height - 1;
                 if (baseX >= 0 && baseX < BOARD_WIDTH && baseY < BOARD_HEIGHT) {
-                    grid[baseY][baseX] = '*'; 
+                    grid[baseY][baseX] = colorSymbol; 
                 }
             }
         }
@@ -333,6 +345,7 @@ public:
   
     Rectangle(int x, int y, int width, int height, string color, bool isFilled) 
         : Figure(color, isFilled), x(x), y(y), width(width), height(height) {}
+    char colorSymbol = color[0]; 
 
     bool isLessThanBoard() const override {
         
@@ -365,7 +378,7 @@ public:
             for (int i = y; i <= y + height; ++i) {
                 for (int j = x; j < x + width; ++j) {
                     if (i >= 0 && i < BOARD_HEIGHT && j >= 0 && j < BOARD_WIDTH) {
-                        grid[i][j].setSign('*');
+                        grid[i][j].setSign(colorSymbol);
                         grid[i][j].setColor(color);
                     }
                 }
@@ -373,21 +386,21 @@ public:
         } else {
             for (int j = x; j < x + width; ++j) {
                 if (y >= 0 && y < BOARD_HEIGHT && j >= 0 && j < BOARD_WIDTH) {
-                    grid[y][j].setSign('*');
+                    grid[y][j].setSign(colorSymbol);
                     grid[y][j].setColor(color);
                 }
                 if (y + height >= 0 && y + height < BOARD_HEIGHT && j >= 0 && j < BOARD_WIDTH) {
-                    grid[y + height][j].setSign('*');
+                    grid[y + height][j].setSign(colorSymbol);
                     grid[y + height][j].setColor(color);
                 }
             }
             for (int i = y; i <= y + height; ++i) {
                 if (i >= 0 && i < BOARD_HEIGHT && x >= 0 && x < BOARD_WIDTH) {
-                    grid[i][x].setSign('*');
+                    grid[i][x].setSign(colorSymbol);
                     grid[i][x].setColor(color);
                 }
                 if (i >= 0 && i < BOARD_HEIGHT && x + width >= 0 && x + width < BOARD_WIDTH) {
-                    grid[i][x + width].setSign('*');
+                    grid[i][x + width].setSign(colorSymbol);
                     grid[i][x + width].setColor(color);
                 }
             }
@@ -501,6 +514,8 @@ public:
     Square(int x, int y, int size, string color, bool isFilled) 
         : Figure(color, isFilled), x(x), y(y), size(size) {}
 
+    char colorSymbol = color[0]; 
+
     bool isLessThanBoard() const override {
         
         if (size > BOARD_HEIGHT) {
@@ -533,7 +548,7 @@ public:
             for (int i = y; i <= y + size; ++i) {
                 for (int j = x; j < x + size; ++j) {
                     if (i >= 0 && i < BOARD_HEIGHT && j >= 0 && j < BOARD_WIDTH) {
-                        grid[i][j].setSign('*');
+                        grid[i][j].setSign(colorSymbol);
                         grid[i][j].setColor(color);
                     }
                 }
@@ -542,22 +557,22 @@ public:
         else {
             for (int j = x; j < x + size; ++j) {
                 if (y >= 0 && y < BOARD_HEIGHT && j >= 0 && j < BOARD_WIDTH) {
-                    grid[y][j].setSign('*');
+                    grid[y][j].setSign(colorSymbol);
                     grid[y][j].setColor(color);
                 }
                 if (y + size >= 0 && y + size < BOARD_HEIGHT && j >= 0 && j < BOARD_WIDTH) {
-                    grid[y + size][j].setSign('*');
+                    grid[y + size][j].setSign(colorSymbol);
                     grid[y + size][j].setColor(color);
                 }
             }
 
             for (int i = y; i <= y + size; ++i) {
                 if (i >= 0 && i < BOARD_HEIGHT && x >= 0 && x < BOARD_WIDTH) {
-                    grid[i][x].setSign('*');
+                    grid[i][x].setSign(colorSymbol);
                     grid[i][x].setColor(color);
                 }
                 if (i >= 0 && i < BOARD_HEIGHT && x + size >= 0 && x + size < BOARD_WIDTH) {
-                    grid[i][x + size].setSign('*');
+                    grid[i][x + size].setSign(colorSymbol);
                     grid[i][x + size].setColor(color);
                 }
             }
@@ -660,6 +675,8 @@ public:
 
     Circle(int x, int y, int r, string color, bool isFilled)
         : Figure(color, isFilled), x_center(x), y_center(y), radius(r) {}
+
+    char colorSymbol = color[0]; 
        
 
     bool isLessThanBoard() const override {
@@ -701,7 +718,7 @@ public:
                     int dy = i - y_center;
                     int dist_squared = dx * dx + dy * dy;
                     if (dist_squared <= r_squared) {
-                        grid[i][j] = '*'; 
+                        grid[i][j] = colorSymbol; 
                         grid[i][j].setColor(color);
                     }
                 }
@@ -713,7 +730,7 @@ public:
                     int dy = i - y_center;
                     int dist_squared = dx * dx + dy * dy;
                     if (abs(dist_squared - r_squared) <= 1) {
-                        grid[i][j] = '*'; 
+                        grid[i][j] = colorSymbol; 
                         grid[i][j].setColor(color);
                     }
                 }
@@ -752,6 +769,7 @@ public:
             return abs(dist_squared - radius * radius) <= 1; // On the frame of the circle
         }
     }
+
 
     void edit(const vector<int>& param) override {
         if (param.size() == 1) {
@@ -796,6 +814,7 @@ public:
         return "x_center: " + to_string(x_center) + ", y_center: " + to_string(y_center) + ", radius: " + to_string(radius) + ", color: " + color + ", type: " + (isFilled ? "fill" : "frame");
     }
 };
+
 
 class Board {
 private:
@@ -887,19 +906,33 @@ public:
     }
 
 
-    Figure* select(int x, int y) const {
-        bool found = false;  
+    std::vector<Figure*> select(int x, int y) const {
+        std::vector<Figure*> foundFigures;
 
         for (const auto& figure : figures) {
             if (figure->isInside(x, y)) {
-                cout << "Figure found at coordinates (" << x << ", " << y << "): \n";
-                return figure;
+                foundFigures.push_back(figure);
             }
         }
-        return nullptr;
 
-      
+        if (foundFigures.empty()) {
+            std::cout << "No figure found at coordinates (" << x << ", " << y << ").\n";
+        } else {
+            std::cout << "Figures found at coordinates (" << x << ", " << y << "):\n";
+        }
+
+        return foundFigures;
     }
+
+    void drawBoard() {
+        clear();
+        for (auto figure : figures) {
+            figure->draw(grid);
+        }
+
+        cout << "Board redrawn.\n";
+    }
+
 
 
 
@@ -911,6 +944,7 @@ public:
             figures.pop_back();
 
             cout << "Undo: Last shape removed from the board.\n";
+            drawBoard();
         } else {
             cout << "No figures to undo.\n";
         }
@@ -1305,26 +1339,29 @@ void run(Board& board) {
             int first, second;
             if (ss >> first) {
                 if (ss >> second) {
-                    selectedFigure = board.select(first, second);
+                   
+                    std::vector<Figure*> selectedFigures = board.select(first, second);
+                    for (auto* figure : selectedFigures) {
+                        if (figure != nullptr) {
+                            cout << "< " << figure->getType() << " [" << figure->getParameters() << "]\n";
+                        }
+                    }
                 } else {
+                    
                     selectedFigure = board.select(first);
-                }
-                if (selectedFigure != nullptr) {
-                    cout << "< " << selectedFigure->getType() << " [" << selectedFigure->getParameters() << "]\n";
+                    if (selectedFigure != nullptr) {
+                        cout << "< " << selectedFigure->getType() << " [" << selectedFigure->getParameters() << "]\n";
+                    } else {
+                        cout << "Error: No figure found with ID " << first << "\n";
+                    }
                 }
             } else {
                 cout << "Error: Invalid input for select command.\n";
             }
             break;
         }
-        case REMOVE:
-            if (selectedFigure != nullptr) {
-                board.removeShape(selectedFigure->getID());
-                selectedFigure = nullptr;
-            } else {
-                std::cout << "Error: No figure selected. Use 'select' first.\n";
-            }
-            break;
+
+
         case PAINT: {
                 std::string newColor;
                 if (selectedFigure != nullptr) {
@@ -1359,9 +1396,18 @@ void run(Board& board) {
             if (selectedFigure != nullptr) {
                 int newX, newY;
                 if (ss >> newX >> newY) {
-                    selectedFigure->remove(board.getGrid());
-                    board.moveFigure(selectedFigure, newX, newY);
-                    selectedFigure->draw(board.getGrid());
+                   
+                    Figure* tempFigure = selectedFigure;
+                    tempFigure->move(newX, newY);
+
+                    
+                    if (tempFigure->isWithinBoard()) {
+                        selectedFigure->remove(board.getGrid()); 
+                        board.moveFigure(selectedFigure, newX, newY); 
+                        selectedFigure->draw(board.getGrid());
+                    } else {
+                        std::cout << "Error: Cannot move figure outside of the board.\n";
+                    }
                 } else {
                     std::cout << "Error: Invalid coordinates.\n";
                 }
